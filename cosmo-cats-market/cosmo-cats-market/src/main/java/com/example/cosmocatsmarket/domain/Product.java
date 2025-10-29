@@ -14,5 +14,5 @@ public class Product {
 
     // One product can have more than one categories
     private List<Category> categoriesName = new ArrayList<>();
-    private Set<UUID> categoriesId = new HashSet<>(); // All ID must be unique
+    private Set<UUID> categoryIds = new HashSet<>(); // All ID must be unique
 }
