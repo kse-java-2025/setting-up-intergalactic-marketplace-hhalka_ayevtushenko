@@ -7,6 +7,7 @@ import lombok.*;
 public class Cart {
     private List<Product> products;
     private Double totalPrice;
+    private Set<Product> productsId = new HashSet<>(); // All ID must be unique
 
     public Cart() {
         //

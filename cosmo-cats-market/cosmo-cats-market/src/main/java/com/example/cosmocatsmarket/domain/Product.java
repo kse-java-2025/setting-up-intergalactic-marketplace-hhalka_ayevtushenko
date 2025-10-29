@@ -12,6 +12,7 @@ public class Product {
     private String review;
     private String status;
 
-    private String categoryName;
-    private UUID categoryId;
+    // One product can have more than one categories
+    private private List<Category> categoriesName = new ArrayList<>();
+    private Set<Category> categoriesId = new HashSet<>(); // All ID must be unique
 }
