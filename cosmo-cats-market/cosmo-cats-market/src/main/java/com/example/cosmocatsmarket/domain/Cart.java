@@ -1,8 +1,14 @@
 package com.example.cosmocatsmarket.domain;
 
 import java.util.List;
+import lombok.*;
 
+@Data
 public class Cart {
-    List<Product> products;
-    Double totalPrice;
+    private List<Product> products;
+    private Double totalPrice;
+
+    public Cart() {
+        //
+    }
 }

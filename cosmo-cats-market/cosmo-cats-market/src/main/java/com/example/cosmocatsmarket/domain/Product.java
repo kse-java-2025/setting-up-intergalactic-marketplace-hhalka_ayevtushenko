@@ -1,12 +1,17 @@
 package com.example.cosmocatsmarket.domain;
 
+import lombok.*;
+import java.util.UUID;
+
+@Data
 public class Product {
-    String id;
-    String productName;
-    String description;
-    Double price;
-    String review;
+    private UUID ProductId;
+    private String productName;
+    private String description;
+    private Double price;
+    private String review;
+    private String status;
 
-    String categoryName;
+    private String categoryName;
+    private UUID categoryId;
 }
-
