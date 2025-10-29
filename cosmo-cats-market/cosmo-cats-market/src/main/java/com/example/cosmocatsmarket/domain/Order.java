@@ -9,5 +9,6 @@ public class Order {
     private List<Product> products = new ArrayList<>();
     private Set<Product> productsId = new HashSet<>(); // All ID must be unique
 
+    private Double productsCoun;
     private Double totalPrice;
 }
