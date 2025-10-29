@@ -13,6 +13,6 @@ public class Product {
     private String status;
 
     // One product can have more than one categories
-    private private List<Category> categoriesName = new ArrayList<>();
-    private Set<Category> categoriesId = new HashSet<>(); // All ID must be unique
+    private List<Category> categoriesName = new ArrayList<>();
+    private Set<UUID> categoriesId = new HashSet<>(); // All ID must be unique
 }
