@@ -7,6 +7,8 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import java.util.*;
 
+import com.example.cosmocatsmarket.validation.CosmoCatAnotations;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,7 +19,8 @@ public class ProductDTO {
     private String description;
     private String review;
 
-    @Size(min = 1, message = "Product name must have at least 1 symbvol")
+    @Size(min = 1, message = "Product name must have at least 1 symbol")
+    @CosmoCatAnotations // Added Validation
     private String productName;
 
     @Min(value = 0, message = "Price must be positive")
