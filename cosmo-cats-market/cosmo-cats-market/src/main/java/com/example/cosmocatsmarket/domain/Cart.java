@@ -2,6 +2,7 @@ package com.example.cosmocatsmarket.domain;
 
 import java.util.List;
 import lombok.*;
+import java.util.*;
 
 @Data
 public class Cart {
