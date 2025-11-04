@@ -5,7 +5,7 @@ import jakarta.validation.ConstraintValidatorContext;
 import java.util.Set;
 
 
-public  abstract class CosmoCatValidator implements ConstraintValidator<CosmoCatAnnotations, String> {
+public class CosmoCatValidator implements ConstraintValidator<CosmoCatAnnotations, String> {
 
     private static final Set<String> COSMIC_TERMS = Set.of("star", "galaxy", "comet");
 
