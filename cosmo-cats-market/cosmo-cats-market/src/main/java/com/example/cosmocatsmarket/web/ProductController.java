@@ -8,6 +8,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.*;
 
 @Slf4j
@@ -53,7 +55,8 @@ public class ProductController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProductById(@PathVariable UUID id) {
         log.warn("DELETE /api/v1/products/{} - Deleting product", id);
-        boolean deleted = productService.delete(id);
-        return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+        productService.delete(id);
+        return ResponseEntity.noContent().build();
     }
+
 }

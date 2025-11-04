@@ -77,6 +77,10 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public boolean delete(UUID id) {
-        return products.remove(id) != null;
+        if (products == null) {
+            return false;
+        }
+        products.remove(id);
+        return true;
     }
 }
