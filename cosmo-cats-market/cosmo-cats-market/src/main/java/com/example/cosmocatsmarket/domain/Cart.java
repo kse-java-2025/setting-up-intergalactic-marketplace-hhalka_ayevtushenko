@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Data
 public class Cart {
+    private UUID cartId;
     private List<Product> products;
     private Set<UUID> productIds = new HashSet<>(); // All ID must be unique
 
