@@ -12,7 +12,7 @@ public class Cart {
     private List<Product> products;
     private Set<UUID> productIds = new HashSet<>(); // All ID must be unique
 
-    private Double productsCoun;
+    private Double productsCount;
     private Double totalPrice;
 
     public Cart() {
