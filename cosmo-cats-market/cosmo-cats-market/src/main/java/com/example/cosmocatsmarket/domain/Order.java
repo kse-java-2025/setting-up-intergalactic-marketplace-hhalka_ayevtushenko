@@ -1,7 +1,11 @@
 package com.example.cosmocatsmarket.domain;
 
-import lombok.*;
-import java.util.*;
+import lombok.Data;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
