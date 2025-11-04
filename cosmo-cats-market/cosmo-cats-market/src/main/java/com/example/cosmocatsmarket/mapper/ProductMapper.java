@@ -14,9 +14,9 @@ public interface ProductMapper {
     @Mapping(target = "productId", ignore = true)
     Product fromDTO(ProductDTO dto);
     // Product must have a category
-    @Mapping(source = "categoryId", target = "categoryId")
-    CategoryDTO toDto(Category category);
+    // @Mapping(source = "categoryId", target = "categoryId")
+    // CategoryDTO toDto(Category category);
 
-    @Mapping(target = "categoryId", ignore = true)
-    Category fromDTO(CategoryDTO dto);
+    // @Mapping(target = "categoryId", ignore = true)
+    // Category fromDTO(CategoryDTO dto);
 }
