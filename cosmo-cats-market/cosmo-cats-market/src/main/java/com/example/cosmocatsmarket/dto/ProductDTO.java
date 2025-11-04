@@ -1,13 +1,14 @@
 package com.example.cosmocatsmarket.dto;
 
-import java.util.List;
-import lombok.*;
-import lombok.Data;
+import com.example.cosmocatsmarket.validation.CosmoCatAnnotations;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
-import java.util.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import com.example.cosmocatsmarket.validation.CosmoCatAnotations;
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -20,7 +21,7 @@ public class ProductDTO {
     private String review;
 
     @Size(min = 1, message = "Product name must have at least 1 symbol")
-    @CosmoCatAnotations // Added Validation
+    @CosmoCatAnnotations // Added Validation
     private String productName;
 
     @Min(value = 0, message = "Price must be positive")
