@@ -1,0 +1,374 @@
+openapi: 3.0.0
+info:
+  title: API for managing product data in the Cosmo Cats Marketplace
+  description: API for managing customer data
+  version: 1.0.0
+
+paths:
+  /api/v1/products:
+    get:
+      summary: Get all products
+      description: Get a list of products with basic details and page information
+      tags:
+        - Products
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 0
+        - in: query
+          name: size
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+          description: Page size (default 20)
+        - in: query
+          name: sort
+          schema:
+            type: string
+            example: "name,asc"
+          description: Sorting order, name,asc or price,desc
+      responses:
+        '200':
+          description: List of all products
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListDto'
+        '204':
+          description: No products found
+          content:
+            application/json:
+              example:
+                type: "https://errors.cosmo-cats.market/no-content"
+                title: "No Content"
+                status: 204
+                detail: "There are no products in the marketplace now"
+                instance: "/api/v1/products"
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/validation-error"
+                title: "Invalid parameter"
+                status: 400
+                detail: "Query parameter 'page' must be a non-negative integer"
+                instance: "/api/v1/products"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/internal-error"
+                title: "Internal Server Error"
+                status: 500
+                detail: "Unexpected error occurred while getting products"
+                instance: "/api/v1/products"
+
+    post:
+      summary: Create a new product
+      description: Add a new product to the marketplace
+      tags:
+        - Products
+      requestBody:
+        description: Product data to create a new product
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductDto'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDto'
+        '400':
+          description: Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
+              example:
+                type: "https://errors.cosmo-cats.market/validation-error"
+                title: "Invalid product data"
+                status: 400
+                detail: "Price must be greater than or equal to 0"
+                instance: "/api/v1/products"
+        '409':
+          description: Conflict with current product data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/conflict"
+                title: "Conflict"
+                status: 409
+                detail: "Product name already exists or product cannot be updated"
+                instance: "/api/v1/products/{id}"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/internal-error"
+                title: "Internal Server Error"
+                status: 500
+                detail: "An unexpected error occurred while creating the product"
+                instance: "/api/v1/products"
+
+
+  /api/v1/products/{id}:
+    get:
+      tags:
+        - Products
+      summary: Get product by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique ID of the product
+      responses:
+        '200':
+          description: Product found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDto'
+        '400':
+          description: Invalid product ID
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/validation-error"
+                title: "Invalid ID"
+                status: 400
+                detail: "Product ID must be a valid UUID"
+                instance: "/api/v1/products/{id}"
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/not-found"
+                title: "Not Found"
+                status: 404
+                detail: "Product with given ID does not exist"
+                instance: "/api/v1/products/{id}"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/internal-error"
+                title: "Internal Server Error"
+                status: 500
+                detail: "Unexpected error occurred while retrieving product data"
+                instance: "/api/v1/products/{id}"
+    put:
+      tags:
+        - Products
+      summary: Update product by ID
+      description: Update an existing product using it`s UUID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique ID of the product to update
+      requestBody:
+        required: true
+        description: New data for the product
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductDto'
+      responses:
+        '200':
+          description: Product updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDto'
+        '400':
+          description: Invalid input or ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/validation-error"
+                title: "Invalid input"
+                status: 400
+                detail: "Product ID must be a valid UUID or request body has wrong format"
+                instance: "/api/v1/products/{id}"
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/not-found"
+                title: "Not Found"
+                status: 404
+                detail: "Product with given ID does not exist"
+                instance: "/api/v1/products/{id}"
+        '409':
+          description: Conflict - product data cannot be updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/conflict"
+                title: "Conflict"
+                status: 409
+                detail: "Another process is updating this product right now"
+                instance: "/api/v1/products/{id}"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/internal-error"
+                title: "Internal Server Error"
+                status: 500
+                detail: "Unexpected error occurred while updating the product"
+                instance: "/api/v1/products/{id}"
+
+    delete:
+      tags:
+        - Products
+      summary: Delete product by ID
+      description: Delete a product from the marketplace using it`s UUID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Unique ID of the product to delete
+      responses:
+        '204':
+          description: No content
+          content: { }
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProblemDetail'
+              example:
+                type: "https://errors.cosmo-cats.market/internal-error"
+                title: "Internal Server Error"
+                status: 500
+                detail: "Unexpected error occurred while deleting the product"
+                instance: "/api/v1/products/{id}"
+
+
+components:
+  schemas:
+    ProductDto:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique ID of the product
+        name:
+          type: string
+          maxLength: 100
+          description: Name of the product
+        price:
+          type: number
+          minimum: 0
+          description: Price of the product must be more then 0
+        description:
+          type: string
+          maxLength: 255
+          description: Short text about the product
+        category:
+          type: string
+          description: Product category
+        available:
+          type: boolean
+          description: True if the product is available in stock
+
+    ProductListDto:
+      type: object
+      properties:
+        products:
+          type: array
+          description: List of product objects
+          items:
+            $ref: '#/components/schemas/ProductDto'
+
+    ProblemDetail:
+      type: object
+      properties:
+        type:
+          type: string
+          description: URI that identifies the type of error
+        title:
+          type: string
+          description: Short title for the error
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: More information about the problem
+        instance:
+          type: string
+          description: API path where the error occurred
+
+
+    ValidationError:
+      type: object
+      properties:
+        status:
+          type: string
+          example: "400"
+          description: HTTP status code
+        errors:
+          type: array
+          description: List of validation error details
+          items:
+            $ref: '#/components/schemas/FieldError'
+
+
+    FieldError:
+      type: object
+      properties:
+        field:
+          type: string
+          description: Field name that failed validation
+        message:
+          type: string
+          description: Explanation of why the validation failed
