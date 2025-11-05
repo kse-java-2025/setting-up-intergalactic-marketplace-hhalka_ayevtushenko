@@ -10,13 +10,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
 public class ProductDTO {
-    private String productId;
+    private UUID productId;
     private String status;
     private String description;
     private String review;
@@ -27,7 +28,7 @@ public class ProductDTO {
 
     @NotNull(message = "Price cannot be null")
     @Min(value = 0, message = "Price must be positive")
-    private Integer price;
+    private Double price;
 
     @Size(min = 1, message = "Product must have at least one category")
     private List<String> categoryIds;

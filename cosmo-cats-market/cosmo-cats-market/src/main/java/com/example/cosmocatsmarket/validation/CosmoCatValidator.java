@@ -11,12 +11,16 @@ public class CosmoCatValidator implements ConstraintValidator<CosmoCatAnnotation
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
-        if (value == null)
+        if (value == null || value.trim().isEmpty()) {
             return false;
-        for (String w : COSMIC_TERMS) {
-            if (value.toLowerCase().contains(w))
-                return true;
         }
+
+        for (String term : COSMIC_TERMS) {
+            if (value.toLowerCase().contains(term)) {
+                return true;
+            }
+        }
+
         return false;
     }
 }
