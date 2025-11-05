@@ -35,8 +35,5 @@ class CosmoCatValidatorTest {
         assertFalse(validator.isValid("Apple", context));
     }
 
-
-
-
 }
 
