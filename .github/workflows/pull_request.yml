@@ -35,14 +35,11 @@ jobs:
             gradle-
 
       - name: Grant execute permission for Gradlew
-        run: chmod +x ./gradlew
+        run: chmod +x ./cosmo-cats-market/cosmo-cats-market/gradlew
 
       # Run Gradle build and tests with coverage
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@v3
-        with:
-          cache-disabled: true
-          generate-job-summary: false
+        run: cd cosmo-cats-market/cosmo-cats-market && ./gradlew clean build
 
       # Upload the JaCoCo test coverage report
       - name: Upload coverage report
