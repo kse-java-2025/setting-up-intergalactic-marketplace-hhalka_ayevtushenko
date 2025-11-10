@@ -47,7 +47,7 @@ tasks.named('test') {
 
 test {
     useJUnitPlatform()
-    finalizedBy jacocoTestReport // , jacocoTestCoverageVerification
+    finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
 
 jacocoTestReport {
