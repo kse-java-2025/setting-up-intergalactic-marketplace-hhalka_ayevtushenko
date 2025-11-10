@@ -39,7 +39,7 @@ jobs:
 
       # Run Gradle build and tests with coverage
       - name: Build with Gradle
-        uses: gradle/gradle-build-action@v4
+        uses: gradle/gradle-build-action@v3
         with:
           cache-disabled: true
           generate-job-summary: false
