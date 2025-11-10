@@ -98,6 +98,6 @@ public class ProductServiceImplTest {
         dto.setCategoryIds(List.of("category#0", "category#x"));
 
         var updated = service.update(UUID.randomUUID(), dto); // UUID.randomUUID() don't exist
-        assertTrue(updated.isEmpty()); // we can't update product that don't exist
+        assertTrue(updated.isEmpty()); // we can't update product that does not exist
     }
 }
