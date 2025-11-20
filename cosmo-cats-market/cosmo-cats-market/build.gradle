@@ -26,7 +26,8 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 
 	implementation 'org.mapstruct:mapstruct:1.5.5.Final'
@@ -61,7 +62,7 @@ jacocoTestCoverageVerification {
     violationRules {
         rule {
             limit {
-                minimum = 0.40 // target minimum 50%
+                minimum = 0.50 // target minimum 50%
             }
         }
     }

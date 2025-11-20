@@ -13,7 +13,7 @@ public class Order {
     private UUID orderId;
     private UUID cartId;
     private List<Product> products = new ArrayList<>();
-    private Set<UUID> productsId = new HashSet<>(); // All ID must be unique
+    private Set<UUID> productsId = new HashSet<>();
 
     private Double productsCount;
     private Double totalPrice;
