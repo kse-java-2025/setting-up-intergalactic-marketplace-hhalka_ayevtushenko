@@ -15,9 +15,8 @@ public class Product {
     private String review;
     private String status;
 
-    // One product can have more than one categories
     private List<Category> categories = new ArrayList<>();
-    //private Set<UUID> categoryIds = new HashSet<>(); // All ID must be unique
+    //private Set<UUID> categoryIds = new HashSet<>();
     private List<String> categoryIds = new ArrayList<>();
 
 }
