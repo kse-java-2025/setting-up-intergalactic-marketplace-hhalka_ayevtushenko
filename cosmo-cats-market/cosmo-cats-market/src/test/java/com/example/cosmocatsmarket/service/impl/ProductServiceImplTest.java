@@ -368,4 +368,24 @@ public class ProductServiceImplTest {
         assertThrows(NullPointerException.class,
                 () -> service.deleteProduct(UUID.randomUUID()));
     }
+
+
+    @Test
+    void shouldThrowExceptionWhenProductNotFound() {
+        UUID missingId = UUID.randomUUID();
+
+        assertThrows(ProductNotFoundException.class,
+                () -> service.getProductById(missingId));
+    }
+
+
+    @Test
+    void shouldThrowExceptionWhenDeletingMissingProduct() {
+        UUID missingId = UUID.randomUUID();
+
+        assertThrows(ProductNotFoundException.class,
+                () -> service.deleteProduct(missingId));
+    }
+
+
 }
