@@ -1,6 +1,6 @@
 package com.example.cosmocatsmarket.dto;
 
-import com.example.cosmocatsmarket.validation.CosmoCatAnnotations;
+import com.example.cosmocatsmarket.validation.CosmoCatNameValidation;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
@@ -23,7 +23,7 @@ public class ProductDTO {
     private String review;
 
     @Size(min = 1, message = "Product name must have at least 1 symbol")
-    @CosmoCatAnnotations // Added Validation
+    @CosmoCatNameValidation
     private String productName;
 
     @NotNull(message = "Price cannot be null")

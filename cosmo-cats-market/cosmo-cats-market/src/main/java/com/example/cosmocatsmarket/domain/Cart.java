@@ -1,15 +1,36 @@
 package com.example.cosmocatsmarket.domain;
 
-import lombok.Data;
-import java.util.ArrayList;
+import lombok.Value;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+@Value
 public class Cart {
-    private UUID cartId;
-    private List<Product> products = new ArrayList<>();
-    private List<String> productIds = new ArrayList<>();
-    private Double productsCount;
-    private Double totalPrice;
+    UUID cartId;
+    List<Product> products;
+    List<String> productIds;
+    Double productsCount;
+    Double totalPrice;
+
+    public Cart(UUID cartId,
+                List<Product> products,
+                List<String> productIds,
+                Double productsCount,
+                Double totalPrice) {
+
+        this.cartId = cartId;
+        this.products = products != null
+                ? Collections.unmodifiableList(products)
+                : Collections.emptyList();
+
+
+        this.productIds = productIds != null
+                ? Collections.unmodifiableList(productIds)
+                : Collections.emptyList();
+
+
+        this.productsCount = productsCount;
+        this.totalPrice = totalPrice;
+    }
 }

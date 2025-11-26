@@ -3,115 +3,137 @@ package com.example.cosmocatsmarket.service.impl;
 import com.example.cosmocatsmarket.domain.Product;
 import com.example.cosmocatsmarket.dto.ProductDTO;
 import com.example.cosmocatsmarket.mapper.ProductMapper;
-import com.example.cosmocatsmarket.web.exception.ConflictException;
+import com.example.cosmocatsmarket.web.exception.ProductAlreadyExistsException;
+import com.example.cosmocatsmarket.web.exception.ProductNotFoundException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
-
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductServiceImplTest {
 
+
     @Mock
     private ProductMapper mapper;
 
+    @Mock
+    private PriceClient priceClient;
+
+    @Mock
+    private org.springframework.web.client.RestClient restClient;
+
     @InjectMocks
     private ProductServiceImpl service;
-
-    private Product product;
     private ProductDTO dto;
+    private UUID id;
+    private Product product;
 
 
     @BeforeEach
-    void setup(){
-        product = new Product();
-        product.setProductId(UUID.randomUUID());
-        product.setProductName("Star Helmet");
-        product.setPrice(400.00);
-
+    void setup() {
+        id = UUID.randomUUID();
         dto = new ProductDTO();
         dto.setProductName("Star Helmet");
-        dto.setPrice(400.00);
+        dto.setPrice(400.0);
+        product = Product.builder()
+                .productId(id)
+                .productName("Star Helmet")
+                .description(null)
+                .price(400.0)
+                .review(null)
+                .status(null)
+                .categories(List.of())
+                .categoryIds(List.of())
+                .build();
     }
 
 
     @Test
     void shouldReturnAllProducts() {
         ProductDTO mappedDto = new ProductDTO();
+        mappedDto.setProductId(id);
         mappedDto.setProductName("Star Helmet");
         mappedDto.setPrice(400.0);
-        //invocation - object that consist info about call
-        when(mapper.fromDTO(any(ProductDTO.class))).thenAnswer(invocation -> {
-            Product p = new Product();
-            p.setProductName(invocation.getArgument(0, ProductDTO.class).getProductName());
-            return p;
-        });
 
-        when(mapper.toDto(any(Product.class))).thenReturn(mappedDto);
-        service.create(mappedDto);
-        List<ProductDTO> result = service.getAll();
+        when(mapper.toNewProduct(any(ProductDTO.class), any(UUID.class)))
+                .thenReturn(product);
 
+        when(priceClient.getPrice(any(UUID.class)))
+                .thenReturn(400.0);
+
+        when(mapper.toDto(any(Product.class)))
+                .thenReturn(mappedDto);
+
+        service.createProduct(dto);
+        List<ProductDTO> result = service.getAllProducts();
         assertEquals(1, result.size());
         assertEquals("Star Helmet", result.get(0).getProductName());
     }
 
+
     @Test
     void shouldReturnEmptyListWhenNoProductsExist(){
-        List<ProductDTO> result = service.getAll();
+        List<ProductDTO> result = service.getAllProducts();
         assertTrue(result.isEmpty());
     }
 
+
     @Test
     void shouldThrowConflictExceptionIfProductAlreadyExist() {
-        ProductDTO dto = new ProductDTO();
-        dto.setProductName("Star Helmet");
-        when(mapper.fromDTO(any(ProductDTO.class))).thenAnswer(invocation ->{
-            Product p = new Product();
-            p.setProductName(invocation.getArgument(0, ProductDTO.class).getProductName());
-            return  p;
-        });
-        when(mapper.toDto(any(Product.class))).thenReturn(dto);
-        service.create(dto);
-        assertThrows(ConflictException.class, () -> service.create(dto));
+        when(mapper.toNewProduct(any(ProductDTO.class), any(UUID.class)))
+                .thenReturn(product);
+
+        when(priceClient.getPrice(any(UUID.class)))
+                .thenReturn(400.0);
+
+        when(mapper.toDto(any(Product.class)))
+                .thenReturn(dto);
+
+        service.createProduct(dto);
+        assertThrows(ProductAlreadyExistsException.class,
+                () -> service.createProduct(dto));
     }
-
-
-
-    //------------
 
 
     @Test
     void shouldReturnProductIfIdExist() {
-        ProductDTO mappedDto = new ProductDTO();
-        mappedDto.setProductId(UUID.randomUUID());
-        mappedDto.setProductName("Comet Helmet");
-        mappedDto.setPrice(400.0);
+        ProductDTO createDto = new ProductDTO();
+        createDto.setProductName("Comet Helmet");
+        createDto.setPrice(400.0);
 
-        when(mapper.fromDTO(any(ProductDTO.class))).thenAnswer(invocation -> {
-            Product p = new Product();
-            p.setProductId(invocation.getArgument(0, ProductDTO.class).getProductId());
-            p.setProductName(invocation.getArgument(0, ProductDTO.class).getProductName());
-            p.setPrice(invocation.getArgument(0, ProductDTO.class).getPrice());
-            return p;
-        });
+        ArgumentCaptor<UUID> idCaptor = ArgumentCaptor.forClass(UUID.class);
+        when(mapper.toNewProduct(any(ProductDTO.class), idCaptor.capture()))
+                .thenAnswer(invocation -> {
+                    UUID realId = idCaptor.getValue();
+                    return Product.builder()
+                            .productId(realId)
+                            .productName("Comet Helmet")
+                            .price(400.0)
+                            .categoryIds(List.of())
+                            .categories(List.of())
+                            .build();
+                });
+
+        when(priceClient.getPrice(any(UUID.class))).thenReturn(400.0);
 
         when(mapper.toDto(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0, Product.class);
+            Product p = invocation.getArgument(0);
             ProductDTO dto = new ProductDTO();
             dto.setProductId(p.getProductId());
             dto.setProductName(p.getProductName());
@@ -119,111 +141,208 @@ public class ProductServiceImplTest {
             return dto;
         });
 
-        ProductDTO created = service.create(mappedDto);
-        Optional<ProductDTO> result = service.getById(created.getProductId());
-
-        assertTrue(result.isPresent());
-        assertEquals("Comet Helmet", result.get().getProductName());
+        ProductDTO created = service.createProduct(createDto);
+        ProductDTO found = service.getProductById(created.getProductId());
+        assertNotNull(found);
+        assertEquals("Comet Helmet", found.getProductName());
+        assertEquals(400.0, found.getPrice());
     }
 
 
     @Test
-    void shouldReturnEmptyWhenProductNotFound() {
-        UUID randomId = UUID.randomUUID();
-        Optional<ProductDTO> result = service.getById(randomId);
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    void shouldReturnEmptyWhenIdIsNull() {
-        Optional<ProductDTO> result = service.getById(null);
-        assertTrue(result.isEmpty());
+    void shouldThrowNotFoundWhenIdIsNull() {
+        assertThrows(ProductNotFoundException.class,
+                () -> service.getProductById(null));
     }
 
 
-    //------------
+    @Test
+    void shouldThrowWhenIdIsNull() {
+        assertThrows(ProductNotFoundException.class,
+                () -> service.getProductById(null));
+    }
 
     @Test
-    void shouldCreateProductCorrect(){
-        ProductDTO dto = new ProductDTO();
-        dto.setProductName("Galaxy Bowl");
-        dto.setPrice(200.0);
+    void shouldCreateProductCorrect() {
+        when(mapper.toNewProduct(any(ProductDTO.class), any(UUID.class)))
+                .thenReturn(product);
 
-        Product mapped = new Product();
-        mapped.setProductName(dto.getProductName());
-        mapped.setPrice(dto.getPrice());
+        when(priceClient.getPrice(any(UUID.class)))
+                .thenReturn(product.getPrice());
 
-        when(mapper.fromDTO(dto)).thenReturn(mapped);
-        when(mapper.toDto(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            ProductDTO res = new ProductDTO();
-            res.setProductId(p.getProductId());
-            res.setProductName(p.getProductName());
-            res.setPrice(p.getPrice());
-            return res;
-        });
+        when(mapper.toDto(any(Product.class)))
+                .thenAnswer(invocation -> {
+                    Product p = invocation.getArgument(0);
+                    ProductDTO result = new ProductDTO();
+                    result.setProductId(p.getProductId());
+                    result.setProductName(p.getProductName());
+                    result.setPrice(p.getPrice());
+                    return result;
+                });
 
-        ProductDTO created = service.create(dto);
+        ProductDTO created = service.createProduct(dto);
         assertNotNull(created.getProductId());
-        assertEquals("Galaxy Bowl", created.getProductName());
+        assertEquals(dto.getProductName(), created.getProductName());
+        assertEquals(dto.getPrice(), created.getPrice());
     }
 
 
     @Test
     void shouldThrowConflictWhenProductAlreadyExists() {
+        UUID id = UUID.randomUUID();
         ProductDTO dto = new ProductDTO();
         dto.setProductName("Star Helmet");
+        dto.setPrice(100.0);
 
-        Product p = new Product();
-        p.setProductName("Star Helmet");
+        Product product = Product.builder()
+                .productId(id)
+                .productName("Star Helmet")
+                .description(null)
+                .price(100.0)
+                .review(null)
+                .status(null)
+                .categories(List.of())
+                .categoryIds(List.of())
+                .build();
 
-        when(mapper.fromDTO(dto)).thenReturn(p);
-        when(mapper.toDto(any(Product.class))).thenReturn(dto);
 
-        service.create(dto);
-        assertThrows(ConflictException.class, () -> service.create(dto));
+        when(mapper.toNewProduct(any(ProductDTO.class), any(UUID.class)))
+                .thenReturn(product);
+
+        when(priceClient.getPrice(any(UUID.class)))
+                .thenReturn(100.0);
+
+        when(mapper.toDto(any(Product.class)))
+                .thenReturn(dto);
+
+        service.createProduct(dto);
+        assertThrows(ProductAlreadyExistsException.class,
+                () -> service.createProduct(dto));
     }
 
 
     @Test
     void shouldStillCreateProductWhenPriceServiceUnavailable() {
+        UUID id = UUID.randomUUID();
         ProductDTO dto = new ProductDTO();
         dto.setProductName("Comet Shoes");
         dto.setPrice(150.0);
 
-        Product mapped = new Product();
-        mapped.setProductName(dto.getProductName());
-        mapped.setPrice(dto.getPrice());
+        Product product = Product.builder()
+                .productId(id)
+                .productName("Comet Shoes")
+                .description(null)
+                .price(150.0)
+                .review(null)
+                .status(null)
+                .categories(List.of())
+                .categoryIds(List.of())
+                .build();
 
-        when(mapper.fromDTO(dto)).thenReturn(mapped);
-        when(mapper.toDto(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            ProductDTO res = new ProductDTO();
-            res.setProductId(p.getProductId());
-            res.setProductName(p.getProductName());
-            res.setPrice(p.getPrice());
-            return res;
-        });
+        ProductDTO mappedDto = new ProductDTO();
+        mappedDto.setProductId(id);
+        mappedDto.setProductName("Comet Shoes");
+        mappedDto.setPrice(150.0);
+        when(mapper.toNewProduct(any(ProductDTO.class), any(UUID.class)))
+                .thenReturn(product);
 
-        ProductDTO created = service.create(dto);
+        when(priceClient.getPrice(any(UUID.class)))
+                .thenThrow(new RuntimeException("Service down"));
+
+        when(mapper.toDto(any(Product.class)))
+                .thenReturn(mappedDto);
+        ProductDTO created = service.createProduct(dto);
+
         assertNotNull(created);
         assertEquals("Comet Shoes", created.getProductName());
+        assertEquals(150.0, created.getPrice());
     }
 
-    //------------
 
     @Test
     void shouldUpdateProductWhenIdExists() {
+
+        ArgumentCaptor<UUID> idCaptor = ArgumentCaptor.forClass(UUID.class);
+        when(mapper.toNewProduct(any(), idCaptor.capture()))
+                .thenAnswer(invocation -> {
+                    UUID generated = idCaptor.getValue();
+                    return Product.builder()
+                            .productId(generated)
+                            .productName(dto.getProductName())
+                            .price(dto.getPrice())
+                            .categories(List.of())
+                            .categoryIds(List.of())
+                            .build();
+                });
+
+        when(priceClient.getPrice(any()))
+                .thenReturn(dto.getPrice());
+
+        when(mapper.toDto(any())).thenAnswer(invocation -> {
+            Product p = invocation.getArgument(0);
+            ProductDTO mapped = new ProductDTO();
+            mapped.setProductId(p.getProductId());
+            mapped.setProductName(p.getProductName());
+            mapped.setPrice(p.getPrice());
+            return mapped;
+        });
+
+        ProductDTO created = service.createProduct(dto);
+        UUID actualId = created.getProductId();
+        ProductDTO updateDto = new ProductDTO();
+        updateDto.setProductName("Updated Helmet");
+        updateDto.setPrice(350.0);
+
+        when(mapper.toUpdatedProduct(updateDto, actualId))
+                .thenReturn(
+                        Product.builder()
+                                .productId(actualId)
+                                .productName("Updated Helmet")
+                                .price(350.0)
+                                .categories(List.of())
+                                .categoryIds(List.of())
+                                .build()
+                );
+
+        ProductDTO result = service.updateProduct(actualId, updateDto);
+        assertNotNull(result);
+        assertEquals("Updated Helmet", result.getProductName());
+        assertEquals(350.0, result.getPrice());
+    }
+
+
+    @Test
+    void shouldThrowNotFoundWhenUpdatingNonExistingProduct() {
+        UUID fakeId = UUID.randomUUID();
         ProductDTO dto = new ProductDTO();
-        dto.setProductName("Old Helmet");
-        dto.setPrice(300.0);
 
-        Product mapped = new Product();
-        mapped.setProductName("Old Helmet");
-        mapped.setPrice(300.0);
+        dto.setProductName("Ghost Product");
+        dto.setPrice(999.0);
 
-        when(mapper.fromDTO(any(ProductDTO.class))).thenReturn(mapped);
-        when(mapper.toDto(any(Product.class))).thenAnswer(invocation -> {
+        assertThrows(ProductNotFoundException.class,
+                () -> service.updateProduct(fakeId, dto));
+    }
+
+
+    @Test
+    void shouldDeleteProductWhenIdExists() {
+        ArgumentCaptor<UUID> idCaptor = ArgumentCaptor.forClass(UUID.class);
+        when(mapper.toNewProduct(any(), idCaptor.capture()))
+                .thenAnswer(invocation -> {
+                    UUID generated = idCaptor.getValue();
+                    return Product.builder()
+                            .productId(generated)
+                            .productName(product.getProductName())
+                            .price(product.getPrice())
+                            .categories(List.of())
+                            .categoryIds(List.of())
+                            .build();
+                });
+
+        when(priceClient.getPrice(any()))
+                .thenReturn(product.getPrice());
+
+        when(mapper.toDto(any())).thenAnswer(invocation -> {
             Product p = invocation.getArgument(0);
             ProductDTO d = new ProductDTO();
             d.setProductId(p.getProductId());
@@ -232,78 +351,21 @@ public class ProductServiceImplTest {
             return d;
         });
 
+        ProductDTO created = service.createProduct(dto);
+        UUID actualId = created.getProductId();
 
-        ProductDTO created = service.create(dto);
-
-
-        ProductDTO newDto = new ProductDTO();
-        newDto.setProductName("Updated Helmet");
-        newDto.setPrice(350.0);
-
-        Product updatedProduct = new Product();
-        updatedProduct.setProductName("Updated Helmet");
-        updatedProduct.setPrice(350.0);
-        when(mapper.fromDTO(newDto)).thenReturn(updatedProduct);
-
-        Optional<ProductDTO> result = service.update(created.getProductId(), newDto);
-
-
-        assertTrue(result.isPresent());
-        assertEquals("Updated Helmet", result.get().getProductName());
-        assertEquals(350.0, result.get().getPrice());
+        assertNotNull(actualId);
+        assertDoesNotThrow(() -> service.deleteProduct(actualId));
+        assertTrue(service.getAllProducts().isEmpty());
     }
 
 
     @Test
-    void shouldReturnEmptyWhenUpdatingNonExistingProduct() {
-        UUID fakeId = UUID.randomUUID();
-        ProductDTO dto = new ProductDTO();
-        dto.setProductName("Ghost Product");
-        dto.setPrice(999.0);
-
-        Optional<ProductDTO> result = service.update(fakeId, dto);
-        assertTrue(result.isEmpty());
-    }
-
-
-    //----------------
-
-    @Test
-    void shouldDeleteProductWhenIdExists() {
-        ProductDTO dto = new ProductDTO();
-        dto.setProductName("Cosmo Mug");
-        dto.setPrice(99.0);
-
-        Product mapped = new Product();
-        mapped.setProductName(dto.getProductName());
-        mapped.setPrice(dto.getPrice());
-        when(mapper.fromDTO(dto)).thenReturn(mapped);
-        when(mapper.toDto(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            ProductDTO result = new ProductDTO();
-            result.setProductId(p.getProductId());
-            result.setProductName(p.getProductName());
-            result.setPrice(p.getPrice());
-            return result;
-        });
-
-        ProductDTO created = service.create(dto);
-
-
-        boolean deleted = service.delete(created.getProductId());
-        assertTrue(deleted, "Expected delete() to return true");
-        assertTrue(service.getAll().isEmpty(), "Expected no products after deletion");
-    }
-
-
-    @Test
-    void shouldReturnFalseWhenProductsMapIsNull() throws Exception {
-        UUID id = UUID.randomUUID();
+    void shouldThrowExceptionWhenDeletingWithNullMap() throws Exception {
         var field = ProductServiceImpl.class.getDeclaredField("products");
         field.setAccessible(true);
         field.set(service, null);
-
-        boolean result = service.delete(id);
-        assertFalse(result, "Expected delete() to return false when map is null");
+        assertThrows(NullPointerException.class,
+                () -> service.deleteProduct(UUID.randomUUID()));
     }
 }

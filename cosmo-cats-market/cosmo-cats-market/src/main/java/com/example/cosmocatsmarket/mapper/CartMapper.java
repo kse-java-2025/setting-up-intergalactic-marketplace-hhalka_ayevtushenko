@@ -5,31 +5,28 @@ import com.example.cosmocatsmarket.domain.Product;
 import com.example.cosmocatsmarket.dto.CartDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-
-import java.util.List;
+import java.util.Collections;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Mapper(componentModel = "spring")
 public interface CartMapper {
 
     @Mapping(target = "productIds", source = "products")
-    CartDTO toDto(Cart cart);
+    CartDTO toCartDto(Cart cart);
 
     @Mapping(target = "products", source = "productIds")
-    Cart fromDTO(CartDTO dto);
+    Cart toCart(CartDTO dto);
 
-    default List<String> mapProductsToIds(List<Product> products) {
-        if (products == null) return null;
-        return products.stream().map(Product::getProductId).map(UUID::toString).collect(Collectors.toList());
+    default String map(Product product) {
+        return product.getProductId().toString();
     }
 
-    default List<Product> mapIdsToProducts(List<String> ids) {
-        if (ids == null) return null;
-        return ids.stream().map(id -> {
-            Product p = new Product();
-            p.setProductId(UUID.fromString(id));
-            return p;
-        }).collect(Collectors.toList());
+    default Product map(String id) {
+        return new Product(
+                UUID.fromString(id),
+                null, null, null, null, null,
+                Collections.emptyList(),
+                Collections.emptyList()
+        );
     }
 }

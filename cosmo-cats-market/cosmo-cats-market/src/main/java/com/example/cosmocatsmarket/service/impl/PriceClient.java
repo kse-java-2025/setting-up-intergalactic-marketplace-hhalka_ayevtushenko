@@ -1,18 +1,22 @@
 package com.example.cosmocatsmarket.service.impl;
 
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Map;
+import org.springframework.web.client.RestClient;
 import java.util.UUID;
 
 @Service
 public class PriceClient {
 
-    private final RestTemplate restTemplate = new RestTemplate();
-    public double getProductPrice(UUID productId) {
-        String url = "http://localhost:8090/prices/" + productId;
-        var response = restTemplate.getForEntity(url, Map.class);
-        return (Double) response.getBody().get("price");
+    private final RestClient restClient;
+
+    public PriceClient(RestClient restClient) {
+        this.restClient = restClient;
+    }
+
+    public Double getPrice(UUID productId) {
+        return restClient.get()
+                .uri("/prices/{id}", productId)
+                .retrieve()
+                .body(Double.class);
     }
 }

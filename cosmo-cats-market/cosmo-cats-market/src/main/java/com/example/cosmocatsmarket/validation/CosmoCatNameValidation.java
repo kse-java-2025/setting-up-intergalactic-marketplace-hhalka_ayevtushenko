@@ -10,12 +10,10 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-// Where we can apply anotation
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
-// How long anotation is kept
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = CosmoCatValidator.class)
-public @interface CosmoCatAnnotations {
+public @interface CosmoCatNameValidation {
     String message() default "Products name must include a cosmic terms like 'star', 'galaxy', 'comet', and etc.";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

@@ -1,7 +1,6 @@
 package com.example.cosmocatsmarket.domain;
 
 import lombok.Data;
-
 import java.util.UUID;
 
 @Data

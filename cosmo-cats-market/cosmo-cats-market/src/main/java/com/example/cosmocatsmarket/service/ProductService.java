@@ -6,9 +6,9 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ProductService {
-    List<ProductDTO> getAll();
-    Optional<ProductDTO> getById(UUID id);
-    ProductDTO create(ProductDTO dto);
-    Optional<ProductDTO> update(UUID id, ProductDTO dto);
-    boolean delete(UUID id);
+    List<ProductDTO> getAllProducts();
+    ProductDTO getProductById(UUID id);
+    ProductDTO createProduct(ProductDTO dto);
+    ProductDTO updateProduct(UUID id, ProductDTO dto);
+    void deleteProduct(UUID id);
 }
