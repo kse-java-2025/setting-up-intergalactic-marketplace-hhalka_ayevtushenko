@@ -387,5 +387,103 @@ public class ProductServiceImplTest {
                 () -> service.deleteProduct(missingId));
     }
 
+    @Test
+    void shouldThrowExceptionWhenUpdatingMissingProduct() {
+        UUID missing = UUID.randomUUID();
 
+        ProductDTO update = new ProductDTO();
+        update.setProductName("Missing");
+        update.setPrice(10.0);
+
+        assertThrows(ProductNotFoundException.class,
+                () -> service.updateProduct(missing, update));
+    }
+
+
+    @Test
+    void shouldReturnAllProductsAfterMultipleCreates() {
+        when(mapper.toNewProduct(any(), any()))
+                .thenAnswer(invocation -> {
+                    ProductDTO in = invocation.getArgument(0);
+                    UUID id = invocation.getArgument(1);
+                    return Product.builder()
+                            .productId(id)
+                            .productName(in.getProductName())
+                            .price(in.getPrice())
+                            .categories(List.of())
+                            .categoryIds(List.of())
+                            .build();
+                });
+
+        when(priceClient.getPrice(any())).thenReturn(100.0);
+        when(mapper.toDto(any())).thenAnswer(invocation -> {
+            Product p = invocation.getArgument(0);
+            ProductDTO dto = new ProductDTO();
+            dto.setProductId(p.getProductId());
+            dto.setProductName(p.getProductName());
+            dto.setPrice(p.getPrice());
+            return dto;
+        });
+
+        ProductDTO dto1 = new ProductDTO();
+        dto1.setProductName("A");
+        dto1.setPrice(100.0);
+
+        ProductDTO dto2 = new ProductDTO();
+        dto2.setProductName("B");
+        dto2.setPrice(100.0);
+
+        service.createProduct(dto1);
+        service.createProduct(dto2);
+
+        List<ProductDTO> all = service.getAllProducts();
+
+        assertEquals(2, all.size());
+    }
+
+
+
+    @Test
+    void shouldThrowWhenCreatingProductWithNullName() {
+        ProductDTO invalid = new ProductDTO();
+        invalid.setProductName(null);
+        invalid.setPrice(100.0);
+
+        assertThrows(NullPointerException.class,
+                () -> service.createProduct(invalid));
+    }
+
+
+    @Test
+    void shouldReturnEmptyListAfterDeleteAll() {
+        when(mapper.toNewProduct(any(), any(UUID.class)))
+                .thenAnswer(invocation -> {
+                    ProductDTO in = invocation.getArgument(0);
+                    UUID id = invocation.getArgument(1);
+
+                    return Product.builder()
+                            .productId(id)
+                            .productName(in.getProductName())
+                            .price(in.getPrice())
+                            .categories(List.of())
+                            .categoryIds(List.of())
+                            .build();
+                });
+
+        when(priceClient.getPrice(any())).thenReturn(product.getPrice());
+
+        when(mapper.toDto(any())).thenAnswer(invocation -> {
+            Product p = invocation.getArgument(0);
+            ProductDTO d = new ProductDTO();
+            d.setProductId(p.getProductId());
+            d.setProductName(p.getProductName());
+            d.setPrice(p.getPrice());
+            return d;
+        });
+
+        ProductDTO created = service.createProduct(dto);
+        UUID id = created.getProductId();
+        service.deleteProduct(id);
+        assertTrue(service.getAllProducts().isEmpty());
+    }
 }
