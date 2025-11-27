@@ -16,7 +16,6 @@ public class Product {
     private String status;
 
     private List<Category> categories = new ArrayList<>();
-    //private Set<UUID> categoryIds = new HashSet<>();
     private List<String> categoryIds = new ArrayList<>();
 
 }
