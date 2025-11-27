@@ -1,23 +1,44 @@
 package com.example.cosmocatsmarket.domain;
 
-import lombok.Data;
+import com.example.cosmocatsmarket.domain.Category;
+import lombok.Builder;
+import lombok.Value;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-@Data
+
+@Value
+@Builder(toBuilder = true)
 public class Product {
-    private UUID productId;
-    private String productName;
-    private String description;
-    private Double price;
-    private String review;
-    private String status;
+    UUID productId;
+    String productName;
+    String description;
+    Double price;
+    String review;
+    String status;
+    List<Category> categories;
+    List<String> categoryIds;
 
-    // One product can have more than one categories
-    private List<Category> categories = new ArrayList<>();
-    //private Set<UUID> categoryIds = new HashSet<>(); // All ID must be unique
-    private List<String> categoryIds = new ArrayList<>();
+    public Product(
+            UUID productId,
+            String productName,
+            String description,
+            Double price,
+            String review,
+            String status,
+            List<Category> categories,
+            List<String> categoryIds
+    ) {
+        this.productId = productId;
+        this.productName = productName;
+        this.description = description;
+        this.price = price;
+        this.review = review;
+        this.status = status;
 
+        this.categories = categories != null ? Collections.unmodifiableList(categories) : Collections.emptyList();
+        this.categoryIds = categoryIds != null ? Collections.unmodifiableList(categoryIds) : Collections.emptyList();
+    }
 }

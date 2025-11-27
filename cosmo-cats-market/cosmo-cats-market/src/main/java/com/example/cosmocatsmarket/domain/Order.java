@@ -1,20 +1,43 @@
 package com.example.cosmocatsmarket.domain;
 
-import lombok.Data;
-
-import java.util.ArrayList;
-import java.util.HashSet;
+import lombok.Builder;
+import lombok.Value;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-@Data
-public class Order {
-    private UUID orderId;
-    private UUID cartId;
-    private List<Product> products = new ArrayList<>();
-    private Set<UUID> productsId = new HashSet<>(); // All ID must be unique
 
-    private Double productsCount;
-    private Double totalPrice;
+@Value
+@Builder
+public class Order {
+    UUID orderId;
+    UUID cartId;
+    List<Product> products;
+    Set<UUID> productsId;
+    Double productsCount;
+    Double totalPrice;
+
+    public Order(
+            UUID orderId,
+            UUID cartId,
+            List<Product> products,
+            Set<UUID> productsId,
+            Double productsCount,
+            Double totalPrice
+    ) {
+        this.orderId = orderId;
+        this.cartId = cartId;
+
+        this.products = products != null
+                ? Collections.unmodifiableList(products)
+                : Collections.emptyList();
+
+        this.productsId = productsId != null
+                ? Collections.unmodifiableSet(productsId)
+                : Collections.emptySet();
+
+        this.productsCount = productsCount;
+        this.totalPrice = totalPrice;
+    }
 }

@@ -1,0 +1,49 @@
+name: Build and Test Coverage
+
+on:
+  pull_request:
+    branches:
+      - main
+      - '**'
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up JDK 17 (you can change to another version if needed)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      # Cache Gradle dependencies
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle.properties', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-
+
+      - name: Grant execute permission for Gradlew
+        run: chmod +x ./cosmo-cats-market/cosmo-cats-market/gradlew
+
+      # Run Gradle build and tests with coverage
+      - name: Build with Gradle
+        run: cd cosmo-cats-market/cosmo-cats-market && ./gradlew clean build
+
+      # Upload the JaCoCo test coverage report
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-coverage-report
+          path: build/reports/coverage/index.html
