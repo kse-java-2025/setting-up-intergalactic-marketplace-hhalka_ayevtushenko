@@ -1,6 +1,9 @@
 spring:
   application:
     name: cosmo-cats-market
+  liquibase:
+    change-log: classpath:liquibase/changelog.yaml
+    enabled: true
 
 feature:
   cosmoCats:

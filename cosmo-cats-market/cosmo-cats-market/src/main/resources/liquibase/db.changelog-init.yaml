@@ -1,0 +1,130 @@
+databaseChangeLog:
+  - changeSet:
+      id: lab-3-1
+      author: hh
+      changes:
+        - createSequence:
+            sequenceName: category_id_seq
+            startValue: 1
+            incrementBy: 50
+        - createSequence:
+            sequenceName: product_id_seq
+            startValue: 1
+            incrementBy: 50
+        - createSequence:
+            sequenceName: order_id_seq
+            startValue: 1
+            incrementBy: 50
+        - createSequence:
+            sequenceName: cart_id_seq
+            startValue: 1
+            incrementBy: 50
+
+        - createTable:
+            tableName: category
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_category
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: product
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_product
+                    nullable: false
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: VARCHAR(2048)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: price
+                  type: NUMERIC(15,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: status
+                  type: BOOLEAN
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category_id
+                  type: BIGINT # List<String>
+                  constraints:
+                    nullable: false
+        - addUniqueConstraint:
+            tableName: product
+            columnNames: category_id, name
+            constraintName: uq_product_category_name
+        - createIndex:
+            indexName: idx_product_name
+            tableName: product
+            columns:
+              - column:
+                  name: name
+
+        - createTable:
+            tableName: order
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_order
+                    nullable: false
+              - column:
+                  name: num_product
+                  type: NUMERIC(1)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tot_price
+                  type: NUMERIC(15,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: cart_id
+                  type: BIGINT
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: cart
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_cart
+                    nullable: false
+              - column:
+                  name: num_product
+                  type: NUMERIC(1)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: tot_price
+                  type: NUMERIC(15,2)
+                  constraints:
+                    nullable: false
