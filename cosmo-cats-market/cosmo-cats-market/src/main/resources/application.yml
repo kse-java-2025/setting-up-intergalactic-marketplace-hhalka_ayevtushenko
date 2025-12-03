@@ -1,12 +1,21 @@
 spring:
   application:
     name: cosmo-cats-market
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/cosmo_cats
+    username: postgres
+    password: admin
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
   liquibase:
     change-log: classpath:liquibase/changelog.yaml
     enabled: true
-
-feature:
-  cosmoCats:
-    enabled: true
-  kittyProducts:
-    enabled: false

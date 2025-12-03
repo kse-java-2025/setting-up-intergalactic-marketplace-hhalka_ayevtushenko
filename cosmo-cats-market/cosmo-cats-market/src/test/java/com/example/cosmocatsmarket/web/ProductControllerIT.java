@@ -32,7 +32,7 @@ public class ProductControllerIT {
     @DisplayName("post_invalid_emptyName_returns400: Name must be given")
     void post_invalid_emptyName_returns400() throws Exception {
         ProductDTO req = new ProductDTO();
-        req.setProductName(""); // unnamed product
+        req.setProductName("");
         req.setPrice(1.0);
         req.setCategoryIds(List.of("category#1"));
 
@@ -47,7 +47,7 @@ public class ProductControllerIT {
     void post_invalid_nullPrice_returns400() throws Exception {
         ProductDTO req = new ProductDTO();
         req.setProductName("Galaxy Bowl");
-        req.setPrice(null); // must be not null
+        req.setPrice(null);
         req.setCategoryIds(List.of("category#2"));
 
         mockMvc.perform(post("/api/v1/products")
@@ -61,7 +61,7 @@ public class ProductControllerIT {
     void post_invalid_negativePrice_returns400() throws Exception {
         ProductDTO req = new ProductDTO();
         req.setProductName("Galaxy Bowl");
-        req.setPrice(-1.0); // price < 0
+        req.setPrice(-1.0);
         req.setCategoryIds(List.of("category#3"));
 
         mockMvc.perform(post("/api/v1/products")
@@ -76,7 +76,7 @@ public class ProductControllerIT {
         ProductDTO req = new ProductDTO();
         req.setProductName("Galaxy Bowl");
         req.setPrice(1.0);
-        req.setCategoryIds(List.of()); // product must have at lest 1 category
+        req.setCategoryIds(List.of());
 
         mockMvc.perform(post("/api/v1/products")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -97,19 +97,5 @@ public class ProductControllerIT {
                         .content(json(req)));
     }
 
-/*  @Test
-    @DisplayName("uuid_isNotUnique: UUID mus be unique")
-    void uuid_isNotUnique() throws Exception {
-        ProductDTO req = new ProductDTO();
-        req.setProductName("Galaxy Bowl");
-        req.setPrice(1.0);
-        req.setCategoryIds(List.of("category#4", "category#4"));
-
-        mockMvc.perform(post("/api/v1/products")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(json(req)))
-                .andExpect(status().isBadRequest());
-    }
-   */
 }
 

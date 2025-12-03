@@ -8,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.List;
 import java.util.UUID;
 
@@ -23,7 +22,7 @@ public class ProductDTO {
     private String review;
 
     @Size(min = 1, message = "Product name must have at least 1 symbol")
-    @CosmoCatAnnotations // Added Validation
+    @CosmoCatAnnotations
     private String productName;
 
     @NotNull(message = "Price cannot be null")

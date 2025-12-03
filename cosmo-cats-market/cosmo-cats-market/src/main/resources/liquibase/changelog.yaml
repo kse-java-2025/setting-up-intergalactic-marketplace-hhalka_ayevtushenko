@@ -1,3 +1,9 @@
 databaseChangeLog:
   - include:
       file: liquibase/db.changelog-init.yaml
+  - include:
+      file: liquibase/db.changelog-1-constraints.yaml
+  - include:
+      file: liquibase/db.changelog-2-indexes.yaml
+  - include:
+      file: liquibase/db.changelog-3-entities-expansion.yaml

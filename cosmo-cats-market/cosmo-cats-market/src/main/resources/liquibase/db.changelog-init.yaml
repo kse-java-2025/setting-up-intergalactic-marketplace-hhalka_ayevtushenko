@@ -28,7 +28,6 @@ databaseChangeLog:
                   type: BIGINT
                   constraints:
                     primaryKey: true
-                    primaryKeyName: pk_category
                     nullable: false
               - column:
                   name: name
@@ -44,7 +43,6 @@ databaseChangeLog:
                   type: BIGINT
                   constraints:
                     primaryKey: true
-                    primaryKeyName: pk_product
                     nullable: false
               - column:
                   name: name
@@ -58,7 +56,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: price
-                  type: NUMERIC(15,2)
+                  type: DOUBLE PRECISION
                   constraints:
                     nullable: false
               - column:
@@ -68,38 +66,35 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: category_id
-                  type: BIGINT # List<String>
+                  type: BIGINT
                   constraints:
                     nullable: false
-        - addUniqueConstraint:
-            tableName: product
-            columnNames: category_id, name
-            constraintName: uq_product_category_name
-        - createIndex:
-            indexName: idx_product_name
-            tableName: product
-            columns:
-              - column:
-                  name: name
+
+
+        - addForeignKeyConstraint:
+            baseTableName: product
+            baseColumnNames: category_id
+            referencedTableName: category
+            referencedColumnNames: id
+            constraintName: fk_product_category
 
         - createTable:
-            tableName: order
+            tableName: orders
             columns:
               - column:
                   name: id
                   type: BIGINT
                   constraints:
                     primaryKey: true
-                    primaryKeyName: pk_order
                     nullable: false
               - column:
                   name: num_product
-                  type: NUMERIC(1)
+                  type: INTEGER
                   constraints:
                     nullable: false
               - column:
                   name: tot_price
-                  type: NUMERIC(15,2)
+                  type: DOUBLE PRECISION
                   constraints:
                     nullable: false
               - column:
@@ -107,6 +102,7 @@ databaseChangeLog:
                   type: BIGINT
                   constraints:
                     nullable: false
+
 
         - createTable:
             tableName: cart
@@ -116,15 +112,22 @@ databaseChangeLog:
                   type: BIGINT
                   constraints:
                     primaryKey: true
-                    primaryKeyName: pk_cart
                     nullable: false
               - column:
                   name: num_product
-                  type: NUMERIC(1)
+                  type: INTEGER
                   constraints:
                     nullable: false
               - column:
                   name: tot_price
-                  type: NUMERIC(15,2)
+                  type: DOUBLE PRECISION
                   constraints:
                     nullable: false
+
+
+        - addForeignKeyConstraint:
+            baseTableName: orders
+            baseColumnNames: cart_id
+            referencedTableName: cart
+            referencedColumnNames: id
+            constraintName: fk_order_cart

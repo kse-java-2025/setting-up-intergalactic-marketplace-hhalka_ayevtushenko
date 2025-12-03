@@ -17,7 +17,6 @@ import java.util.UUID;
 public class CartDTO {
     private UUID cartId;
     private List<String> productIds = new ArrayList<>();
-
     private Double productsCount;
     @NotNull(message = "Price cannot be null")
     private Double totalPrice;
