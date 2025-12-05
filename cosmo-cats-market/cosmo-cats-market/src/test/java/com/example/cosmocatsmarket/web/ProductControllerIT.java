@@ -1,5 +1,6 @@
 package com.example.cosmocatsmarket.web;
 
+import com.example.cosmocatsmarket.IT.AbstractIt;
 import com.example.cosmocatsmarket.dto.ProductDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -17,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-public class ProductControllerIT {
+public class ProductControllerIT extends AbstractIt {
     @Autowired
     private MockMvc mockMvc;
 
