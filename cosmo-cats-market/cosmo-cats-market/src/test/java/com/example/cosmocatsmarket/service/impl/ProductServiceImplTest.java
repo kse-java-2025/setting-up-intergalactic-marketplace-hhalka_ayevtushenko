@@ -3,6 +3,7 @@ package com.example.cosmocatsmarket.service.impl;
 import com.example.cosmocatsmarket.domain.Product;
 import com.example.cosmocatsmarket.dto.ProductDTO;
 import com.example.cosmocatsmarket.mapper.ProductMapper;
+import com.example.cosmocatsmarket.repository.ProductRepository;
 import com.example.cosmocatsmarket.web.exception.ConflictException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,6 +11,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.when;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -30,12 +34,14 @@ public class ProductServiceImplTest {
     @Mock
     private ProductMapper mapper;
 
+    @Mock
+    private ProductRepository productRepository;
+
     @InjectMocks
     private ProductServiceImpl service;
 
     private Product product;
     private ProductDTO dto;
-
 
     @BeforeEach
     void setup(){
@@ -261,6 +267,7 @@ public class ProductServiceImplTest {
         dto.setProductName("Ghost Product");
         dto.setPrice(999.0);
 
+        when(productRepository.findById(anyLong())).thenReturn(Optional.empty()); // added
         Optional<ProductDTO> result = service.update(fakeId, dto);
         assertTrue(result.isEmpty());
     }
@@ -287,8 +294,8 @@ public class ProductServiceImplTest {
             return result;
         });
 
-        ProductDTO created = service.create(dto);
 
+        ProductDTO created = service.create(dto);
 
         boolean deleted = service.delete(created.getProductId());
         assertTrue(deleted, "Expected delete() to return true");
