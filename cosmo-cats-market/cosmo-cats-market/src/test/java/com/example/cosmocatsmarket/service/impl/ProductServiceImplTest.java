@@ -467,4 +467,53 @@ public class ProductServiceImplTest {
 
         verify(productRepository, never()).save(any());
     }
+
+    @Test
+    @DisplayName("shouldThrowExceptionWhenNewPriceIsNotPositive: Price must be > 0")
+    void shouldThrowExceptionWhenNewPriceIsNotPositive() {
+        UUID id = UUID.randomUUID();
+        long idLong = Math.abs(id.getMostSignificantBits() % Long.MAX_VALUE);
+
+        ProductEntity entity = ProductEntity.builder()
+                .id(idLong)
+                .name("Galaxy Helmet")
+                .price(10.5)
+                .status(true)
+                .build();
+
+        when(productRepository.findById(idLong)).thenReturn(Optional.of(entity));
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> service.updateProductPrice(id, 0.0)
+        );
+
+        assertEquals("Price must be greater than 0", ex.getMessage());
+        verify(productRepository, never()).save(any());
+    }
+
+
+    @Test
+    @DisplayName("shouldThrowExceptionWhenPriceIncreaseExceeds50Percent: increasing can't be more than 50% ")
+    void shouldThrowExceptionWhenPriceIncreaseExceeds50Percent() {
+        UUID id = UUID.randomUUID();
+        long idLong = Math.abs(id.getMostSignificantBits() % Long.MAX_VALUE);
+
+        ProductEntity entity = ProductEntity.builder()
+                .id(idLong)
+                .name("Galaxy Helmet")
+                .price(10.5)
+                .status(true)
+                .build();
+
+        when(productRepository.findById(idLong)).thenReturn(Optional.of(entity));
+
+        RuntimeException ex = assertThrows(
+                RuntimeException.class,
+                () -> service.updateProductPrice(id, 200.0)
+        );
+
+        assertEquals("Price increase cannot exceed 50%", ex.getMessage());
+        verify(productRepository, never()).save(any());
+    }
 }
