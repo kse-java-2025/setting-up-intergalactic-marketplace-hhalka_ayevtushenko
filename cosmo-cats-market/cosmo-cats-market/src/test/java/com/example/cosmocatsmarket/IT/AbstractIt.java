@@ -11,12 +11,15 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest
 public abstract class AbstractIt {
 
-    @Container
-    static PostgreSQLContainer<?> postgres =
-            new PostgreSQLContainer<>("postgres:16-alpine")
-                    .withDatabaseName("cosmocats")
-                    .withUsername("test")
-                    .withPassword("test");
+    static final PostgreSQLContainer<?> postgres;
+
+    static {
+        postgres = new PostgreSQLContainer<>("postgres:16-alpine")
+                .withDatabaseName("cosmocats")
+                .withUsername("test")
+                .withPassword("test");
+        postgres.start();
+    }
 
     @DynamicPropertySource
     static void registerDataSourceProperties(DynamicPropertyRegistry registry) {
