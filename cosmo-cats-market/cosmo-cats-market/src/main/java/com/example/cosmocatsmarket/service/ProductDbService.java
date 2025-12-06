@@ -17,4 +17,5 @@ public interface ProductDbService {
     ProductEntity updateProduct(Long id, ProductEntity product);
 
 
+    void deleteProductById(Long id);
 }

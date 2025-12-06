@@ -98,4 +98,8 @@ public class ProductDbServiceImpl implements ProductDbService {
         return savedClone;
     }
 
+    @Override
+    public void deleteProductById(Long id) {
+        productRepository.deleteById(id);
+    }
 }
