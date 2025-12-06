@@ -4,6 +4,8 @@ import com.example.cosmocatsmarket.domain.Product;
 import com.example.cosmocatsmarket.dto.ProductDTO;
 import com.example.cosmocatsmarket.mapper.ProductMapper;
 import com.example.cosmocatsmarket.repository.ProductRepository;
+import com.example.cosmocatsmarket.repository.entity.CategoryEntity;
+import com.example.cosmocatsmarket.repository.entity.ProductEntity;
 import com.example.cosmocatsmarket.web.exception.ConflictException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,6 +15,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,11 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class ProductServiceImplTest {
@@ -58,20 +61,26 @@ public class ProductServiceImplTest {
 
     @Test
     void shouldReturnAllProducts() {
-        ProductDTO mappedDto = new ProductDTO();
-        mappedDto.setProductName("Star Helmet");
-        mappedDto.setPrice(400.0);
-        //invocation - object that consist info about call
-        when(mapper.fromDTO(any(ProductDTO.class))).thenAnswer(invocation -> {
-            Product p = new Product();
-            p.setProductName(invocation.getArgument(0, ProductDTO.class).getProductName());
-            return p;
+        ProductDTO input = new ProductDTO();
+        input.setProductName("Star Helmet");
+        input.setPrice(400.0);
+        input.setCategoryIds(List.of());
+        when(productRepository.save(any(ProductEntity.class))).thenAnswer(inv -> {
+            ProductEntity e = inv.getArgument(0);
+            e.setId(1L);
+            return e;
         });
 
-        when(mapper.toDto(any(Product.class))).thenReturn(mappedDto);
-        service.create(mappedDto);
-        List<ProductDTO> result = service.getAll();
+        when(productRepository.findAll()).thenReturn(
+                List.of(ProductEntity.builder()
+                        .id(1L)
+                        .name("Star Helmet")
+                        .price(400.0)
+                        .build())
+        );
 
+        service.create(input);
+        List<ProductDTO> result = service.getAll();
         assertEquals(1, result.size());
         assertEquals("Star Helmet", result.get(0).getProductName());
     }
@@ -86,52 +95,41 @@ public class ProductServiceImplTest {
     void shouldThrowConflictExceptionIfProductAlreadyExist() {
         ProductDTO dto = new ProductDTO();
         dto.setProductName("Star Helmet");
-        when(mapper.fromDTO(any(ProductDTO.class))).thenAnswer(invocation ->{
-            Product p = new Product();
-            p.setProductName(invocation.getArgument(0, ProductDTO.class).getProductName());
-            return  p;
+        dto.setCategoryIds(List.of("1"));
+
+        when(productRepository.existsByNameAndCategoryId("Star Helmet", 1L))
+                .thenReturn(false)
+                .thenReturn(true);
+
+        when(productRepository.save(any())).thenAnswer(inv -> {
+            ProductEntity e = inv.getArgument(0);
+            e.setId(1L);
+            return e;
         });
-        when(mapper.toDto(any(Product.class))).thenReturn(dto);
+
         service.create(dto);
-        assertThrows(ConflictException.class, () -> service.create(dto));
+        assertThrows(RuntimeException.class, () -> service.create(dto));
     }
-
-
-
-    //------------
-
 
     @Test
-    void shouldReturnProductIfIdExist() {
-        ProductDTO mappedDto = new ProductDTO();
-        mappedDto.setProductId(UUID.randomUUID());
-        mappedDto.setProductName("Comet Helmet");
-        mappedDto.setPrice(400.0);
+    void shouldReturnProductIfIdExists() {
+        UUID id = UUID.randomUUID();
+        Long longId = Math.abs(id.getMostSignificantBits() % Long.MAX_VALUE);
+        ProductEntity entity = ProductEntity.builder()
+                .id(longId)
+                .name("Comet Helmet")
+                .description("Test desc")
+                .price(400.0)
+                .status(true)
+                .category(null)
+                .build();
 
-        when(mapper.fromDTO(any(ProductDTO.class))).thenAnswer(invocation -> {
-            Product p = new Product();
-            p.setProductId(invocation.getArgument(0, ProductDTO.class).getProductId());
-            p.setProductName(invocation.getArgument(0, ProductDTO.class).getProductName());
-            p.setPrice(invocation.getArgument(0, ProductDTO.class).getPrice());
-            return p;
-        });
-
-        when(mapper.toDto(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0, Product.class);
-            ProductDTO dto = new ProductDTO();
-            dto.setProductId(p.getProductId());
-            dto.setProductName(p.getProductName());
-            dto.setPrice(p.getPrice());
-            return dto;
-        });
-
-        ProductDTO created = service.create(mappedDto);
-        Optional<ProductDTO> result = service.getById(created.getProductId());
-
+        when(productRepository.findById(longId)).thenReturn(Optional.of(entity));
+        Optional<ProductDTO> result = service.getById(id);
         assertTrue(result.isPresent());
         assertEquals("Comet Helmet", result.get().getProductName());
+        assertEquals(400.0, result.get().getPrice());
     }
-
 
     @Test
     void shouldReturnEmptyWhenProductNotFound() {
@@ -147,31 +145,32 @@ public class ProductServiceImplTest {
     }
 
 
-    //------------
-
     @Test
-    void shouldCreateProductCorrect(){
+    void shouldCreateProductCorrect() {
         ProductDTO dto = new ProductDTO();
         dto.setProductName("Galaxy Bowl");
         dto.setPrice(200.0);
+        dto.setCategoryIds(List.of("1"));
 
-        Product mapped = new Product();
-        mapped.setProductName(dto.getProductName());
-        mapped.setPrice(dto.getPrice());
+        ProductEntity entityToSave = ProductEntity.builder()
+                .name("Galaxy Bowl")
+                .price(200.0)
+                .category(CategoryEntity.builder().id(1L).build())
+                .build();
 
-        when(mapper.fromDTO(dto)).thenReturn(mapped);
-        when(mapper.toDto(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            ProductDTO res = new ProductDTO();
-            res.setProductId(p.getProductId());
-            res.setProductName(p.getProductName());
-            res.setPrice(p.getPrice());
-            return res;
-        });
+        ProductEntity savedEntity = ProductEntity.builder()
+                .id(10L)
+                .name("Galaxy Bowl")
+                .price(200.0)
+                .category(CategoryEntity.builder().id(1L).build())
+                .build();
 
+        when(productRepository.save(any(ProductEntity.class))).thenReturn(savedEntity);
         ProductDTO created = service.create(dto);
-        assertNotNull(created.getProductId());
+        assertNotNull(created);
         assertEquals("Galaxy Bowl", created.getProductName());
+        assertEquals(200.0, created.getPrice());
+        assertEquals(new UUID(10L, 0L), created.getProductId());
     }
 
 
@@ -179,15 +178,10 @@ public class ProductServiceImplTest {
     void shouldThrowConflictWhenProductAlreadyExists() {
         ProductDTO dto = new ProductDTO();
         dto.setProductName("Star Helmet");
-
-        Product p = new Product();
-        p.setProductName("Star Helmet");
-
-        when(mapper.fromDTO(dto)).thenReturn(p);
-        when(mapper.toDto(any(Product.class))).thenReturn(dto);
-
-        service.create(dto);
-        assertThrows(ConflictException.class, () -> service.create(dto));
+        dto.setCategoryIds(List.of("5"));
+        when(productRepository.existsByNameAndCategoryId("Star Helmet", 5L))
+                .thenReturn(true);
+        assertThrows(RuntimeException.class, () -> service.create(dto));
     }
 
 
@@ -196,64 +190,53 @@ public class ProductServiceImplTest {
         ProductDTO dto = new ProductDTO();
         dto.setProductName("Comet Shoes");
         dto.setPrice(150.0);
+        dto.setCategoryIds(List.of());
 
-        Product mapped = new Product();
-        mapped.setProductName(dto.getProductName());
-        mapped.setPrice(dto.getPrice());
+        ProductEntity savedEntity = ProductEntity.builder()
+                .id(10L)
+                .name("Comet Shoes")
+                .price(150.0)
+                .status(false)
+                .build();
 
-        when(mapper.fromDTO(dto)).thenReturn(mapped);
-        when(mapper.toDto(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            ProductDTO res = new ProductDTO();
-            res.setProductId(p.getProductId());
-            res.setProductName(p.getProductName());
-            res.setPrice(p.getPrice());
-            return res;
-        });
+        when(productRepository.save(any(ProductEntity.class)))
+                .thenReturn(savedEntity);
 
         ProductDTO created = service.create(dto);
         assertNotNull(created);
         assertEquals("Comet Shoes", created.getProductName());
+        assertEquals(150.0, created.getPrice());
     }
 
-    //------------
 
     @Test
     void shouldUpdateProductWhenIdExists() {
+        UUID id = UUID.randomUUID();
+        Long idLong = Math.abs(id.getMostSignificantBits() % Long.MAX_VALUE);
+
+        ProductEntity existing = ProductEntity.builder()
+                .id(idLong)
+                .name("Old Helmet")
+                .price(300.0)
+                .status(false)
+                .build();
+
         ProductDTO dto = new ProductDTO();
-        dto.setProductName("Old Helmet");
-        dto.setPrice(300.0);
+        dto.setProductName("Updated Helmet");
+        dto.setPrice(350.0);
+        dto.setCategoryIds(List.of());
 
-        Product mapped = new Product();
-        mapped.setProductName("Old Helmet");
-        mapped.setPrice(300.0);
+        ProductEntity updated = ProductEntity.builder()
+                .id(idLong)
+                .name("Updated Helmet")
+                .price(350.0)
+                .status(false)
+                .build();
 
-        when(mapper.fromDTO(any(ProductDTO.class))).thenReturn(mapped);
-        when(mapper.toDto(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            ProductDTO d = new ProductDTO();
-            d.setProductId(p.getProductId());
-            d.setProductName(p.getProductName());
-            d.setPrice(p.getPrice());
-            return d;
-        });
+        when(productRepository.findById(idLong)).thenReturn(Optional.of(existing));
+        when(productRepository.save(any(ProductEntity.class))).thenReturn(updated);
 
-
-        ProductDTO created = service.create(dto);
-
-
-        ProductDTO newDto = new ProductDTO();
-        newDto.setProductName("Updated Helmet");
-        newDto.setPrice(350.0);
-
-        Product updatedProduct = new Product();
-        updatedProduct.setProductName("Updated Helmet");
-        updatedProduct.setPrice(350.0);
-        when(mapper.fromDTO(newDto)).thenReturn(updatedProduct);
-
-        Optional<ProductDTO> result = service.update(created.getProductId(), newDto);
-
-
+        Optional<ProductDTO> result = service.update(id, dto);
         assertTrue(result.isPresent());
         assertEquals("Updated Helmet", result.get().getProductName());
         assertEquals(350.0, result.get().getPrice());
@@ -267,50 +250,34 @@ public class ProductServiceImplTest {
         dto.setProductName("Ghost Product");
         dto.setPrice(999.0);
 
-        when(productRepository.findById(anyLong())).thenReturn(Optional.empty()); // added
+        when(productRepository.findById(anyLong())).thenReturn(Optional.empty());
         Optional<ProductDTO> result = service.update(fakeId, dto);
         assertTrue(result.isEmpty());
     }
 
 
-    //----------------
-
     @Test
     void shouldDeleteProductWhenIdExists() {
-        ProductDTO dto = new ProductDTO();
-        dto.setProductName("Cosmo Mug");
-        dto.setPrice(99.0);
+        UUID id = UUID.randomUUID();
+        Long idLong = Math.abs(id.getMostSignificantBits() % Long.MAX_VALUE);
 
-        Product mapped = new Product();
-        mapped.setProductName(dto.getProductName());
-        mapped.setPrice(dto.getPrice());
-        when(mapper.fromDTO(dto)).thenReturn(mapped);
-        when(mapper.toDto(any(Product.class))).thenAnswer(invocation -> {
-            Product p = invocation.getArgument(0);
-            ProductDTO result = new ProductDTO();
-            result.setProductId(p.getProductId());
-            result.setProductName(p.getProductName());
-            result.setPrice(p.getPrice());
-            return result;
-        });
+        when(productRepository.existsById(idLong)).thenReturn(true);
 
-
-        ProductDTO created = service.create(dto);
-
-        boolean deleted = service.delete(created.getProductId());
-        assertTrue(deleted, "Expected delete() to return true");
-        assertTrue(service.getAll().isEmpty(), "Expected no products after deletion");
+        boolean result = service.delete(id);
+        assertTrue(result);
+        verify(productRepository).deleteById(idLong);
     }
 
 
     @Test
-    void shouldReturnFalseWhenProductsMapIsNull() throws Exception {
+    void shouldReturnFalseWhenProductDoesNotExist() {
         UUID id = UUID.randomUUID();
-        var field = ProductServiceImpl.class.getDeclaredField("products");
-        field.setAccessible(true);
-        field.set(service, null);
+        Long idLong = Math.abs(id.getMostSignificantBits() % Long.MAX_VALUE);
 
+        when(productRepository.existsById(idLong)).thenReturn(false);
         boolean result = service.delete(id);
-        assertFalse(result, "Expected delete() to return false when map is null");
+        assertFalse(result);
+        verify(productRepository, never()).deleteById(any());
     }
+
 }

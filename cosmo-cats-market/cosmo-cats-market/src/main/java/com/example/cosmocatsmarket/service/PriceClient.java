@@ -1,4 +1,4 @@
-package com.example.cosmocatsmarket.service.impl;
+package com.example.cosmocatsmarket.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
