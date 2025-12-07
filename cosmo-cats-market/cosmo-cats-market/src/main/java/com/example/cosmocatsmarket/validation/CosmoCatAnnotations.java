@@ -10,9 +10,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 @Documented
-// Where we can apply anotation
 @Target({ ElementType.FIELD, ElementType.PARAMETER })
-// How long anotation is kept
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = CosmoCatValidator.class)
 public @interface CosmoCatAnnotations {
