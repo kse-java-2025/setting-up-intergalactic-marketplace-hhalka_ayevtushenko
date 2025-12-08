@@ -93,4 +93,50 @@ public class CartControllerIT extends AbstractIt {
         mockMvc.perform(delete("/api/carts/{id}", cart.getId()))
                 .andExpect(status().isNoContent());
     }
+
+    @Test
+    @DisplayName("getById_existing_returns200AndBody: ")
+    void getById_existing_returns200AndBody() throws Exception {
+        CartEntity cart = cartRepository.save(
+                CartEntity.builder()
+                        .numProduct(3)
+                        .totalPrice(150.0)
+                        .build()
+        );
+
+        mockMvc.perform(get("/api/carts/{id}", cart.getId()))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.id").value(cart.getId()))
+                .andExpect(jsonPath("$.numProduct").value(3))
+                .andExpect(jsonPath("$.totalPrice").value(150.0));
+    }
+
+    @Test
+    @DisplayName("put_existing_returns200AndUpdates: ")
+    void put_existing_returns200AndUpdates() throws Exception {
+        CartEntity existing = cartRepository.save(
+                CartEntity.builder()
+                        .numProduct(1)
+                        .totalPrice(50.0)
+                        .build()
+        );
+
+        CartEntity req = CartEntity.builder()
+                .numProduct(5)
+                .totalPrice(250.0)
+                .build();
+
+        mockMvc.perform(put("/api/carts/{id}", existing.getId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json(req)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(existing.getId()))
+                .andExpect(jsonPath("$.numProduct").value(5))
+                .andExpect(jsonPath("$.totalPrice").value(250.0));
+
+        CartEntity updated = cartRepository.findById(existing.getId()).orElseThrow();
+        org.assertj.core.api.Assertions.assertThat(updated.getNumProduct()).isEqualTo(5);
+        org.assertj.core.api.Assertions.assertThat(updated.getTotalPrice()).isEqualTo(250.0);
+    }
 }

@@ -11,6 +11,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -304,12 +306,16 @@ public class OrderDbServiceImplIt extends AbstractIt {
                 CartEntity.builder().numProduct(1).totalPrice(25.0).build()
         );
 
+        LocalDateTime orderDate = LocalDateTime.of(2024, 1, 1, 12, 0);
+
         OrderEntity order = new OrderEntity();
         order.setOrderNumber("ORD-SUM");
         order.setCustomerEmail("cat@space.com");
         order.setTotalPrice(12.5);
         order.setNumProduct(1);
         order.setStatus("OK");
+        order.setCart(cart);
+        order.setOrderDate(orderDate);
         order.setCart(cart);
 
         orderDbService.saveOrder(order);
@@ -319,7 +325,65 @@ public class OrderDbServiceImplIt extends AbstractIt {
         var summary = summaries.get(0);
         assertTrue(summary.getOrderNumber().startsWith("ORD-"));
         assertEquals(12.5, summary.getTotalPrice());
+
+        assertEquals("cat@space.com", summary.getCustomerEmail());
+        assertEquals(1, summary.getItemCount());
+        assertNotNull(summary.getOrderDate());
+        assertEquals(orderDate, summary.getOrderDate());
     }
 
+    @Test
+    @DisplayName("findByOrderDateBetween & findByOrderDateAfter: should filter orders by date")
+    void shouldFilterOrdersByDate() {
+        CartEntity cart = cartDbService.saveCart(
+                CartEntity.builder().numProduct(1).totalPrice(10.0).build()
+        );
 
+        LocalDateTime now = LocalDateTime.now().withNano(0);
+        LocalDateTime twoDaysAgo = now.minusDays(2);
+        LocalDateTime yesterday = now.minusDays(1);
+        LocalDateTime tomorrow = now.plusDays(1);
+
+        OrderEntity oldOrder = new OrderEntity();
+        oldOrder.setOrderNumber("ORD-OLD");
+        oldOrder.setCustomerEmail("old@cat.com");
+        oldOrder.setTotalPrice(5.0);
+        oldOrder.setNumProduct(1);
+        oldOrder.setStatus("OK");
+        oldOrder.setOrderDate(twoDaysAgo);
+        oldOrder.setCart(cart);
+
+        OrderEntity midOrder = new OrderEntity();
+        midOrder.setOrderNumber("ORD-MID");
+        midOrder.setCustomerEmail("mid@cat.com");
+        midOrder.setTotalPrice(15.0);
+        midOrder.setNumProduct(2);
+        midOrder.setStatus("OK");
+        midOrder.setOrderDate(yesterday.plusHours(1));
+        midOrder.setCart(cart);
+
+        OrderEntity newOrder = new OrderEntity();
+        newOrder.setOrderNumber("ORD-NEW");
+        newOrder.setCustomerEmail("new@cat.com");
+        newOrder.setTotalPrice(20.0);
+        newOrder.setNumProduct(3);
+        newOrder.setStatus("OK");
+        newOrder.setOrderDate(now);
+        newOrder.setCart(cart);
+
+        orderRepository.save(oldOrder);
+        orderRepository.save(midOrder);
+        orderRepository.save(newOrder);
+
+        List<OrderEntity> between = orderRepository.findByOrderDateBetween(yesterday, tomorrow);
+        assertEquals(2, between.size());
+        List<String> numbersBetween = between.stream()
+                .map(OrderEntity::getOrderNumber)
+                .toList();
+        assertTrue(numbersBetween.contains("ORD-MID"));
+        assertTrue(numbersBetween.contains("ORD-NEW"));
+        List<OrderEntity> after = orderRepository.findByOrderDateAfter(yesterday.plusHours(2));
+        assertEquals(1, after.size());
+        assertEquals("ORD-NEW", after.get(0).getOrderNumber());
+    }
 }
