@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-unique-product
+      author: anna
+      changes:
+        - addUniqueConstraint:
+            tableName: product
+            columnNames: category_id, name
+            constraintName: uq_product_category_name
