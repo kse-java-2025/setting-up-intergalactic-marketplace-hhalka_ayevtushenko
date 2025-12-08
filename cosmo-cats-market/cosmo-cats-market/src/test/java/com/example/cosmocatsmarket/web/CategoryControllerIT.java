@@ -39,7 +39,6 @@ public class CategoryControllerIT extends AbstractIt {
         mockMvc.perform(get("/api/categories"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-                // тепер очікуємо, що елементів > 0
                 .andExpect(jsonPath("$.length()", greaterThan(0)));
     }
 
