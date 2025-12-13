@@ -59,11 +59,11 @@ dependencies {
 test {
     useJUnitPlatform()
 
-    def dockerSock = "${System.getProperty('user.home')}/.docker/run/docker.sock"
+    // def dockerSock = "${System.getProperty('user.home')}/.docker/run/docker.sock"
 
-    environment "DOCKER_HOST", "unix://${dockerSock}"
-    environment "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE", dockerSock
-    systemProperty "api.version", "1.44"
+    // environment "DOCKER_HOST", "unix://${dockerSock}"
+    // environment "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE", dockerSock
+    // systemProperty "api.version", "1.44"
 
     finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
