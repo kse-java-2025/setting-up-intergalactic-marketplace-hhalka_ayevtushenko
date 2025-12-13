@@ -19,3 +19,9 @@ spring:
   liquibase:
     change-log: classpath:liquibase/changelog.yaml
     enabled: true
+
+jwt:
+  secret: very-secret-key-that-is-long-enough
+
+security:
+  api-key: secret-cat-key
