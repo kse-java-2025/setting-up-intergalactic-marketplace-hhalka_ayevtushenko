@@ -28,9 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ApiKeyAuthenticationFilter.class,
         ProductSecurityIt.TestJwtDecoderConfig.class
 })
-@TestPropertySource(properties = {
-        "security.api-key=test-key"
-})
+@TestPropertySource(properties = "security.api-key=test-key")
 class ProductSecurityIt {
 
     @Autowired

@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
+import java.util.List;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -29,39 +31,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ApiKeyAuthenticationFilter.class,
         CategorySecurityIt.TestJwtDecoderConfig.class
 })
-@TestPropertySource(properties = {
-        "security.api-key=test-key"
-})
+@TestPropertySource(properties = "security.api-key=test-key")
 class CategorySecurityIt {
 
-    private static final String BASE = "/api/v1/categories";
+    private static final String BASE = "/api/categories";
 
-    @Autowired MockMvc mockMvc;
+    @Autowired
+    MockMvc mockMvc;
 
-    @MockBean CategoryDbService categoryDbService;
+    @MockBean
+    CategoryDbService categoryDbService;
 
-    @MockBean CategoryRepository categoryRepository;
+    @MockBean
+    CategoryRepository categoryRepository;
 
     @Test
-    void withoutAuth_401() throws Exception {
+    void getAll_withoutAuth_returns401() throws Exception {
         mockMvc.perform(get("/test/categories"))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void withBearerJwt_200() throws Exception {
-        mockMvc.perform(get("/test/categories")
-                        .header("Authorization", "Bearer test-token"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("ok"));
-    }
-
-    @Test
-    void withApiKey_200() throws Exception {
-        mockMvc.perform(get("/test/categories")
-                        .header("X-API-KEY", "test-key"))
-                .andExpect(status().isOk())
-                .andExpect(content().string("ok"));
     }
 
     @RestController
@@ -69,6 +56,26 @@ class CategorySecurityIt {
     static class TestCategoryController {
         @GetMapping("/categories")
         public String ok() { return "ok"; }
+    }
+
+    @Test
+    void getAll_withBearerJwt_returns200() throws Exception {
+        when(categoryDbService.findAllCategories()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/categories")
+                        .header("Authorization", "Bearer test-token"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
+
+    @Test
+    void getAll_withValidApiKey_returns200() throws Exception {
+        when(categoryDbService.findAllCategories()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/categories")
+                        .header("X-API-KEY", "test-key"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
     }
 
     @TestConfiguration

@@ -26,9 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         ApiKeyAuthenticationFilter.class,
         SecuritySmokeIt.TestJwtDecoderConfig.class
 })
-@TestPropertySource(properties = {
-        "security.api-key=test-key"
-})
+@TestPropertySource(properties = "security.api-key=test-key")
 class SecuritySmokeIt {
 
     @Autowired
@@ -42,7 +40,7 @@ class SecuritySmokeIt {
 
     @Test
     void withInvalidApiKey_returns401_withCustomError() throws Exception {
-        mockMvc.perform(get("/__test/secure")
+        mockMvc.perform(get("/test/secure")
                         .header("X-API-KEY", "wrong-key"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(content().string(containsString("Invalid API key")));
