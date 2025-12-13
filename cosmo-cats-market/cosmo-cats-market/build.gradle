@@ -48,20 +48,24 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+    testImplementation platform("org.testcontainers:testcontainers-bom:2.0.2")
     testImplementation 'org.testcontainers:junit-jupiter'
     testImplementation 'org.testcontainers:postgresql'
     testRuntimeOnly 'org.postgresql:postgresql'
 }
 
-tasks.named('test') {
-    useJUnitPlatform()
-    finalizedBy jacocoTestReport
-}
-
 test {
     useJUnitPlatform()
+
+    def dockerSock = "${System.getProperty('user.home')}/.docker/run/docker.sock"
+
+    environment "DOCKER_HOST", "unix://${dockerSock}"
+    environment "TESTCONTAINERS_DOCKER_SOCKET_OVERRIDE", dockerSock
+    systemProperty "api.version", "1.44"
+
     finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
+
 
 jacocoTestReport {
     dependsOn test

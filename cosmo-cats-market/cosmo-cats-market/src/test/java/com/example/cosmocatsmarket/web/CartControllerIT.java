@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.greaterThan;
 @AutoConfigureMockMvc
 public class CartControllerIT extends AbstractIt {
 
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -36,7 +37,7 @@ public class CartControllerIT extends AbstractIt {
     @Test
     @DisplayName("getAll_returns200AndNonEmptyList: ")
     void getAll_returns200AndNonEmptyList() throws Exception {
-        mockMvc.perform(get("/api/carts"))
+        mockMvc.perform(get("/api/carts").with(withApiKey()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()", greaterThan(0)));
@@ -45,7 +46,7 @@ public class CartControllerIT extends AbstractIt {
     @Test
     @DisplayName("getById_notExisting_returns404: ")
     void getById_notExisting_returns404() throws Exception {
-        mockMvc.perform(get("/api/carts/{id}", 9999L))
+        mockMvc.perform(get("/api/carts/{id}", 9999L).with(withApiKey()))
                 .andExpect(status().isNotFound());
     }
 
@@ -57,10 +58,11 @@ public class CartControllerIT extends AbstractIt {
                 .totalPrice(100.0)
                 .build();
 
-        mockMvc.perform(post("/api/carts")
+        mockMvc.perform(post("/api/carts").with(withApiKey())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(req)))
                 .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").isNumber())
                 .andExpect(jsonPath("$.numProduct").value(2))
                 .andExpect(jsonPath("$.totalPrice").value(100.0));
@@ -74,7 +76,7 @@ public class CartControllerIT extends AbstractIt {
                 .totalPrice(200.0)
                 .build();
 
-        mockMvc.perform(put("/api/carts/{id}", 9999L)
+        mockMvc.perform(put("/api/carts/{id}", 9999L).with(withApiKey())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(req)))
                 .andExpect(status().isBadRequest());
@@ -90,7 +92,7 @@ public class CartControllerIT extends AbstractIt {
                         .build()
         );
 
-        mockMvc.perform(delete("/api/carts/{id}", cart.getId()))
+        mockMvc.perform(delete("/api/carts/{id}", cart.getId()).with(withApiKey()))
                 .andExpect(status().isNoContent());
     }
 
@@ -104,7 +106,7 @@ public class CartControllerIT extends AbstractIt {
                         .build()
         );
 
-        mockMvc.perform(get("/api/carts/{id}", cart.getId()))
+        mockMvc.perform(get("/api/carts/{id}", cart.getId()).with(withApiKey()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(cart.getId()))
@@ -127,10 +129,11 @@ public class CartControllerIT extends AbstractIt {
                 .totalPrice(250.0)
                 .build();
 
-        mockMvc.perform(put("/api/carts/{id}", existing.getId())
+        mockMvc.perform(put("/api/carts/{id}", existing.getId()).with(withApiKey())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(req)))
                 .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").value(existing.getId()))
                 .andExpect(jsonPath("$.numProduct").value(5))
                 .andExpect(jsonPath("$.totalPrice").value(250.0));

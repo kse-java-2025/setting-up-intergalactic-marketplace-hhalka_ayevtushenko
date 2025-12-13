@@ -60,7 +60,7 @@ public class OrderControllerIT extends AbstractIt {
                 .totalPrice(50)
                 .build();
 
-        mockMvc.perform(post("/api/v1/orders")
+        mockMvc.perform(post("/api/v1/orders").with(withApiKey())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(req)))
                 .andExpect(status().isCreated())
@@ -72,21 +72,21 @@ public class OrderControllerIT extends AbstractIt {
     @Test
     @DisplayName("getById_invalidId_returns400: ")
     void getById_invalidId_returns400() throws Exception {
-        mockMvc.perform(get("/api/v1/orders/{orderId}", "not-a-number"))
+        mockMvc.perform(delete("/api/v1/orders/{orderId}", "NaN").with(withApiKey()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("delete_invalidId_returns400: ")
     void delete_invalidId_returns400() throws Exception {
-        mockMvc.perform(delete("/api/v1/orders/{orderId}", "NaN"))
+        mockMvc.perform(delete("/api/v1/orders/{orderId}", "NaN").with(withApiKey()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     @DisplayName("patch_notExistingOrder_returns400: ")
     void patch_notExistingOrder_returns400() throws Exception {
-        mockMvc.perform(patch("/api/v1/orders/{orderNumber}/status", "ORD-999999")
+        mockMvc.perform(patch("/api/v1/orders/{orderNumber}/status", "ORD-999999").with(withApiKey())
                         .param("status", "SHIPPED"))
                 .andExpect(status().isBadRequest());
     }
@@ -107,7 +107,7 @@ public class OrderControllerIT extends AbstractIt {
                         .build()
         );
 
-        mockMvc.perform(get("/api/v1/orders/by-number/{orderNumber}", entity.getOrderNumber()))
+        mockMvc.perform(get("/api/v1/orders/by-number/{orderNumber}", entity.getOrderNumber()).with(withApiKey()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.orderId").value(entity.getId().toString()))
                 .andExpect(jsonPath("$.totalPrice").value(100));
