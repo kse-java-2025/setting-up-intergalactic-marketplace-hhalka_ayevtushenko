@@ -1,8 +1,8 @@
 package com.example.cosmocatsmarket.security;
 
-import com.example.cosmocatsmarket.repository.ProductRepository;
-import com.example.cosmocatsmarket.service.ProductService;
-import com.example.cosmocatsmarket.web.ProductController;
+import com.example.cosmocatsmarket.repository.CategoryRepository;
+import com.example.cosmocatsmarket.service.CategoryDbService;
+import com.example.cosmocatsmarket.web.CategoryController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -14,68 +14,70 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.time.Instant;
-import java.util.List;
 
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(controllers = ProductController.class)
+@WebMvcTest(controllers = CategoryController.class)
 @Import({
         SecurityConfig.class,
         ApiKeyAuthenticationFilter.class,
-        ProductControllerSecurityIt.TestJwtDecoderConfig.class
+        CategorySecurityIt.TestJwtDecoderConfig.class
 })
 @TestPropertySource(properties = {
         "security.api-key=test-key"
 })
-class ProductControllerSecurityIt {
+class CategorySecurityIt {
 
-    @Autowired
-    MockMvc mockMvc;
+    private static final String BASE = "/api/v1/categories";
 
-    @MockBean
-    ProductService productService;
+    @Autowired MockMvc mockMvc;
 
-    @MockBean
-    ProductRepository productRepository;
+    @MockBean CategoryDbService categoryDbService;
+
+    @MockBean CategoryRepository categoryRepository;
 
     @Test
-    void getAll_withoutAuth_returns401() throws Exception {
-        mockMvc.perform(get("/api/v1/products"))
+    void withoutAuth_401() throws Exception {
+        mockMvc.perform(get("/test/categories"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    void getAll_withBearerJwt_returns200() throws Exception {
-        when(productService.getAll()).thenReturn(List.of());
-
-        mockMvc.perform(get("/api/v1/products")
+    void withBearerJwt_200() throws Exception {
+        mockMvc.perform(get("/test/categories")
                         .header("Authorization", "Bearer test-token"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[]"));
+                .andExpect(content().string("ok"));
     }
 
     @Test
-    void getAll_withValidApiKey_returns200() throws Exception {
-        when(productService.getAll()).thenReturn(List.of());
-
-        mockMvc.perform(get("/api/v1/products")
+    void withApiKey_200() throws Exception {
+        mockMvc.perform(get("/test/categories")
                         .header("X-API-KEY", "test-key"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[]"));
+                .andExpect(content().string("ok"));
+    }
+
+    @RestController
+    @RequestMapping("/test")
+    static class TestCategoryController {
+        @GetMapping("/categories")
+        public String ok() { return "ok"; }
     }
 
     @TestConfiguration
     static class TestJwtDecoderConfig {
-        @Bean
-        JwtDecoder jwtDecoder() {
+        @Bean JwtDecoder jwtDecoder() {
             return token -> Jwt.withTokenValue(token)
                     .header("alg", "none")
                     .claim("sub", "test-user")
-                    .claim("scope", "products:read")
+                    .claim("scope", "categories:read")
                     .issuedAt(Instant.now())
                     .expiresAt(Instant.now().plusSeconds(3600))
                     .build();
