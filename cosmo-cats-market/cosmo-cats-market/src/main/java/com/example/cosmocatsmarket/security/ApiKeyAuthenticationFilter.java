@@ -24,14 +24,25 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String header = request.getHeader("X-API-KEY");
-        if (header == null || !header.equals(apiKey)) {
+        if (header == null || header.isBlank()) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
+        if (!header.equals(apiKey)) {
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
             response.getWriter().write("""
-                        { "error": "Invalid or missing API key" }
-                    """);
+                { "error": "Invalid API key" }
+            """);
             return;
         }
 
@@ -44,4 +55,3 @@ public class ApiKeyAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 }
-

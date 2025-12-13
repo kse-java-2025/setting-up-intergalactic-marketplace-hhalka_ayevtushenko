@@ -10,23 +10,19 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 @Profile("!no-auth")
 public class SecurityConfig {
-    @Bean
-    public ApiKeyAuthenticationFilter apiKeyAuthenticationFilter() {
-        return new ApiKeyAuthenticationFilter();
-    }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http, ApiKeyAuthenticationFilter apiKeyAuthenticationFilter) throws Exception {
         http
                 .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .csrf(AbstractHttpConfigurer::disable)
-                .addFilterBefore(apiKeyAuthenticationFilter(),
-                        org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 "/v3/api-docs/**",
@@ -36,7 +32,9 @@ public class SecurityConfig {
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
-                .oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults()));
+                .oauth2ResourceServer(server -> server.jwt(Customizer.withDefaults()))
+                .addFilterAfter(apiKeyAuthenticationFilter, BearerTokenAuthenticationFilter.class);
+        ;
         return http.build();
     }
 }
