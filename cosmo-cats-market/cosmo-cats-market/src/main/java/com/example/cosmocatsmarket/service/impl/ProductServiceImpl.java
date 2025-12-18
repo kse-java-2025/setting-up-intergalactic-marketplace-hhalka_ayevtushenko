@@ -2,6 +2,7 @@ package com.example.cosmocatsmarket.service.impl;
 
 import com.example.cosmocatsmarket.dto.ProductDTO;
 import com.example.cosmocatsmarket.mapper.ProductMapper;
+import com.example.cosmocatsmarket.repository.CategoryRepository;
 import com.example.cosmocatsmarket.repository.ProductRepository;
 import com.example.cosmocatsmarket.repository.entity.ProductEntity;
 import com.example.cosmocatsmarket.repository.entity.CategoryEntity;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class ProductServiceImpl implements ProductService {
-
+    private final CategoryRepository categoryRepository;
     private final ProductRepository productRepository;
     private final ProductMapper productMapper;
 
@@ -185,13 +186,16 @@ public class ProductServiceImpl implements ProductService {
     }
 
     private ProductEntity convertToEntity(ProductDTO dto) {
+
         CategoryEntity category = null;
+
         if (!dto.getCategoryIds().isEmpty()) {
             Long categoryId = convertStringToLong(dto.getCategoryIds().get(0));
-            category = CategoryEntity.builder()
-                    .id(categoryId)
-                    .build();
+
+            category = categoryRepository.findById(categoryId)
+                    .orElseThrow(() -> new RuntimeException("Category not found"));
         }
+
         Boolean status = dto.getStatus() != null ?
                 Boolean.parseBoolean(dto.getStatus()) : false;
 
@@ -203,6 +207,7 @@ public class ProductServiceImpl implements ProductService {
                 .category(category)
                 .build();
     }
+
 
 
     private Long convertUuidToLong(UUID uuid) {

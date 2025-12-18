@@ -36,7 +36,7 @@ public class CategoryControllerIT extends AbstractIt {
     @Test
     @DisplayName("getAll_returns200AndNonEmptyList: ")
     void getAll_returns200AndNonEmptyList() throws Exception {
-        mockMvc.perform(get("/api/categories"))
+        mockMvc.perform(get("/api/categories").with(withApiKey()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()", greaterThan(0)));
@@ -45,7 +45,7 @@ public class CategoryControllerIT extends AbstractIt {
     @Test
     @DisplayName("getById_notExisting_returns404: ")
     void getById_notExisting_returns404() throws Exception {
-        mockMvc.perform(get("/api/categories/{id}", 9999L))
+        mockMvc.perform(get("/api/categories/{id}", 9999L).with(withApiKey()))
                 .andExpect(status().isNotFound());
     }
 
@@ -56,7 +56,7 @@ public class CategoryControllerIT extends AbstractIt {
                 .name("Space Toys")
                 .build();
 
-        mockMvc.perform(post("/api/categories")
+        mockMvc.perform(post("/api/categories").with(withApiKey())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(req)))
                 .andExpect(status().isOk())
@@ -73,7 +73,7 @@ public class CategoryControllerIT extends AbstractIt {
                         .build()
         );
 
-        mockMvc.perform(get("/api/categories/name/{name}", entity.getName()))
+        mockMvc.perform(get("/api/categories/name/{name}", entity.getName()).with(withApiKey()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(entity.getId()))
                 .andExpect(jsonPath("$.name").value("Bowls"));
@@ -86,7 +86,7 @@ public class CategoryControllerIT extends AbstractIt {
                 .name("Updated")
                 .build();
 
-        mockMvc.perform(put("/api/categories/{id}", 9999L)
+        mockMvc.perform(put("/api/categories/{id}", 9999L).with(withApiKey())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(json(req)))
                 .andExpect(status().isBadRequest());
@@ -101,7 +101,7 @@ public class CategoryControllerIT extends AbstractIt {
                         .build()
         );
 
-        mockMvc.perform(delete("/api/categories/{id}", entity.getId()))
+        mockMvc.perform(delete("/api/categories/{id}", entity.getId()).with(withApiKey()))
                 .andExpect(status().isNoContent());
     }
 }

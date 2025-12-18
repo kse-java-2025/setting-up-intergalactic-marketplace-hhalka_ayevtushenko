@@ -3,7 +3,13 @@ package com.example.cosmocatsmarket.service.impl;
 import com.example.cosmocatsmarket.domain.Product;
 import com.example.cosmocatsmarket.dto.ProductDTO;
 import com.example.cosmocatsmarket.mapper.ProductMapper;
+
+import com.example.cosmocatsmarket.domain.Category;
+import com.example.cosmocatsmarket.dto.CategoryDTO;
+import com.example.cosmocatsmarket.mapper.ProductMapper;
+
 import com.example.cosmocatsmarket.repository.ProductRepository;
+import com.example.cosmocatsmarket.repository.CategoryRepository;
 import com.example.cosmocatsmarket.repository.entity.CategoryEntity;
 import com.example.cosmocatsmarket.repository.entity.ProductEntity;
 import com.example.cosmocatsmarket.web.exception.ConflictException;
@@ -40,6 +46,10 @@ public class ProductServiceImplTest {
 
     @Mock
     private ProductRepository productRepository;
+
+    @Mock
+    private CategoryRepository categoryRepository;
+
 
     @InjectMocks
     private ProductServiceImpl service;
@@ -98,6 +108,9 @@ public class ProductServiceImplTest {
         dto.setProductName("Star Helmet");
         dto.setCategoryIds(List.of("1"));
 
+        when(categoryRepository.findById(1L))
+                .thenReturn(Optional.of(CategoryEntity.builder().id(1L).build()));
+
         when(productRepository.existsByNameAndCategoryId("Star Helmet", 1L))
                 .thenReturn(false)
                 .thenReturn(true);
@@ -153,17 +166,14 @@ public class ProductServiceImplTest {
         dto.setPrice(200.0);
         dto.setCategoryIds(List.of("1"));
 
-        ProductEntity entityToSave = ProductEntity.builder()
-                .name("Galaxy Bowl")
-                .price(200.0)
-                .category(CategoryEntity.builder().id(1L).build())
-                .build();
+        CategoryEntity category = CategoryEntity.builder().id(1L).build();
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
 
         ProductEntity savedEntity = ProductEntity.builder()
                 .id(10L)
                 .name("Galaxy Bowl")
                 .price(200.0)
-                .category(CategoryEntity.builder().id(1L).build())
+                .category(category)
                 .build();
 
         when(productRepository.save(any(ProductEntity.class))).thenReturn(savedEntity);
